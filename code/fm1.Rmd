@@ -1,0 +1,462 @@
+---
+title: "MS_Sharon"
+author: "Pedro Jordano"
+date: "6-19/3/2017"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo= TRUE, cache=T)
+
+```
+
+## Datasets
+
+The data are frequencies of tree-herbivore interactions at the individual level for __Eucalyptus__ trees in Australia.
+
+```{r input, echo= TRUE}
+library(ggplot2)
+library(statnet)
+library(igraph)
+library(sna)
+library(ergm)
+library(ggnet)
+library(GGally)
+source("multiplot.R")
+main<- read.table("../data/main_matrix.csv", header= T, sep= ",",dec = ".",
+                  na.strings = "NA")
+str(main)
+```
+
+## Some edits
+
+Fixing the adjacency matrices from the input data. Subset the three years and extract the adjacency matrices for each year.
+
+This extracts just the interaction data. The covariates are extracted later.
+
+```{r adj_mat, echo=T}
+m80<- main %>%  
+          dplyr::filter(year==1980) %>% 
+          select(2:27) 
+m81<- main %>%  
+          dplyr::filter(year==1981) %>% 
+          select(2:27) 
+m82<- main %>%  
+          dplyr::filter(year==1982) %>% 
+          select(2:27) 
+head(m80); head(m81); head(m82)
+
+```
+
+These are labels for plotting, etc. Already checked by Sharon. 
+
+```{r labels, echo=TRUE}
+# Labels for family:
+famlab<- c("Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Cicadellidae","Curculionidae","Curculionidae","Curculionidae","Cicadellidae","Geometridae","Orthoptera","Pergidae","Arctiidae","Psyllidae","Psyllidae","Coccidae")
+#
+# Labels for subfamilies:
+sfamlab<- c("Chrysomelidae_Paropsinae","Chrysomelidae_Paropsinae","Chrysomelidae_Chrysomelinae","Chrysomelidae_Paropsinae","Chrysomelidae_Paropsinae","Chrysomelidae_Paropsinae","Chrysomelidae_Cryptocephalinae","Chrysomelidae_Cryptocephalinae","Chrysomelidae_Cryptocephalinae","Chrysomelidae","Chrysomelidae","Chrysomelidae_Eumolpinae","Chrysomelidae_Cryptocephalinae","Cicadellidae","Curculionidae_Curculioninae","Curculionidae_Curculioninae","Curculionidae","Cicadellidae","Geometridae","Orthoptera","Pergidae","Arctiidae","Psyllidae","Psyllidae","Coccidae")
+#
+# Labels for feeding modes:
+feedlab<- c("folivore","folivore","folivore","folivore","folivore","folivore","folivore","folivore","folivore","folivore","folivore","folivore","folivore","xylem feeder","weevil","weevil","weevil","xylem feeder","folivore","folivore","folivore","folivore","phloem feeder","phloem feeder","phloem feeder")
+#
+
+```
+
+## Plotting the interaction networks by year
+
+For each year, with node labels, weighted adjacency matrices.
+
+```{r plots_by_year, fig.width=9, eval=T}
+# Plotting bipartite networks from adjacency matrix of two-mode network.
+# Using ggplot2 -----------------------------------------------------------
+# 
+# Code for plotting a bipartite network in ggplot2
+require(network)
+require(ggplot2)
+require(sna)
+require(ggnet)
+
+# Bipartite network initialization, starting from an adjacency matrix.
+# Matrix from dataframe.
+w80<-t(m80[,2:25])
+colnames(w80)<- m80[,1]
+net80<-network::network(w80, matrix.type= 'bipartite', ignore.eval= T)
+
+w81<-t(m81[,2:25])
+colnames(w81)<- m81[,1]
+net81<-network::network(w81, matrix.type= 'bipartite', ignore.eval= T)
+
+w82<-t(m82[,2:25])
+colnames(w82)<- m82[,1]
+net82<-network::network(w82, matrix.type= 'bipartite', ignore.eval= T)
+
+# Function to compute edge weights, scaled.
+edge.weights<- function(M, x = 10) {
+    # Transpose.
+    M <- t(M)
+    # Edge list and weights.
+    M <- cbind(expand.grid(dimnames(M))[2:1], as.vector(M))
+    # Discard null weights.
+    M <- subset(M, M[, 3] != 0)
+    # Scaled weights.
+    M.scaled <- x*log(M[, 3] + 1) / max(log(M[, 3] + 1))
+    # Vector of edge weights.
+    return(M.scaled)
+}
+ # edge.weights(w80) # On the adjacency matrix
+
+# Pass the network, edge weights and mode to ggnet.
+# Old:
+# net = bipartite.network(as.matrix(net80), modes = c("Herb", "Trees"))
+# Weighted bipartite networks
+# 
+# 1980
+bip80= network(net80,
+              matrix.type = "bipartite",
+              ignore.eval = FALSE,
+              names.eval = "weights",
+              modes = c("Herb", "Trees"))
+# set colors for each mode
+# col = c("actor" = "grey", "event" = "gold")
+
+ggnet2(bip80, node.size = 5,
+       edge.size= edge.weights(w80, 5), edge.alpha= .25,
+       label= TRUE, label.size= 3,
+       color= "mode", palette = "Set2",
+       shape= "mode")
+
+# 1981
+bip81= network(net81,
+              matrix.type = "bipartite",
+              ignore.eval = FALSE,
+              names.eval = "weights",
+              modes = c("Herb", "Trees"))
+# set colors for each mode
+# col = c("actor" = "grey", "event" = "gold")
+
+ggnet2(bip81, node.size = 5,
+       edge.size= edge.weights(w81, 5), edge.alpha= .25,
+       label= TRUE, label.size= 3,
+       color= "mode", palette = "Set2",
+       shape= "mode")
+
+#1982
+bip82= network(net82,
+              matrix.type = "bipartite",
+              ignore.eval = FALSE,
+              names.eval = "weights",
+              modes = c("Herb", "Trees"))
+# set colors for each mode
+# col = c("actor" = "grey", "event" = "gold")
+
+ggnet2(bip82, node.size = 5,
+       edge.size= edge.weights(w82, 5), edge.alpha= .25,
+       label= TRUE, label.size= 3,
+       color= "mode", palette = "Set2",
+       shape= "mode")
+
+```
+
+
+
+#### Analyses
+
+The Bernouilli or random model assumes that, for a given pair of nodes, the presence or absence of an edge between that pair is independent of the status of possible edges between any other pairs of nodes.
+
+These three statistics can be used in ergm by specifying terms altkstar, gwdegree, or gwesp, respectively, in the model. 
+
+For all these analyses I've followed:
+Kolaczyk, E.D. and  Csárdi, G. 2014. _Statistical Analysis of Network Data with R_. Springer, Berlin. (ISBN 978-1-4939-0982-7). See `library(sand)`.
+
+##### Build data
+
+```{r data.build, echo=TRUE, message=FALSE, warning=FALSE, fig.width=9}
+# Add the node attributes
+# 
+net80.g<- graph_from_incidence_matrix(m80, weighted= T, add.names=NULL)
+n80.edg<- as_edgelist(net80.g)
+
+# Subsetting the covariates from the main dataset for each year separately.
+# 
+m80_attr<-main %>%  
+          dplyr::filter(year==1980) %>% 
+          select(c(2,28:32)) 
+
+# Create the attributes matrix
+V(net80.g)$tree<-       m80_attr$treeidpauci
+V(net80.g)$tree_mass<-  m80_attr$tree_mass
+V(net80.g)$leaf_P<-     m80_attr$leaf_P
+V(net80.g)$height<-     m80_attr$height
+V(net80.g)$leaf_N<-     m80_attr$leaf_N
+V(net80.g)$NP_ratio<-   m80_attr$NP_ratio
+
+```
+
+
+##### Correations among covariates
+
+```{r correlations, echo=TRUE, message=FALSE, warning=FALSE, fig.width=8}
+# Correlations among tree cahracteristics
+# 
+mat<-m80_attr[,c(2:6)]
+mm<- stats::cor(mat, use="pairwise.complete.obs")
+
+# library(GGally)
+p1<- ggcorr(data = NULL, cor_matrix = cor(mm[, -1], use = "everything"))
+
+p2<- ggcorr(m80_attr[,c(2:6)], geom = "blank", label = TRUE, hjust = 0.75) +
+        geom_point(size = 10, aes(color = coefficient > 0, 
+                   alpha = abs(coefficient) > 0.5)) +
+                   scale_alpha_manual(values = c("TRUE" = 0.25, "FALSE" = 0)) +
+                   guides(color = FALSE, alpha = FALSE)
+multiplot (p1, p2, cols=2)
+
+```
+
+
+##### Set matrices and graphs for model testing
+
+For now just the 1980 graph is analyzed.
+
+
+```{r Bernouilli, echo=TRUE, message=FALSE, warning=FALSE, fig.width=9}
+# Loading vertex attributes for 1980
+# 
+AA <- get.adjacency(net80.g)
+v.attrs <- get.data.frame(net80.g, what="vertices")[1:42,]
+
+library(ergm) # Will load package ’network’ as well.
+m80.s <- network::as.network(as.matrix(AA),
+                             directed=FALSE, bipartite=42) 
+network::set.vertex.attribute(m80.s, "tree_mass",
+                                v.attrs$tree_mass) 
+network::set.vertex.attribute(m80.s, "leaf_P",
+                                v.attrs$leaf_P) 
+network::set.vertex.attribute(m80.s, "height",
+                                v.attrs$height)
+network::set.vertex.attribute(m80.s, "leaf_N",
+                                v.attrs$leaf_N)
+network::set.vertex.attribute(m80.s, "NP_ratio",
+                                v.attrs$NP_ratio)
+
+# Random Bernouilli model
+my.ergm.bern <- formula(m80.s ~ edges)
+my.ergm.bern
+m80.s ~ edges
+summary.statistics(my.ergm.bern)
+
+# Models with no explanatory variables
+# 
+m80.ergm00 <- formula(m80.s ~ edges)                      # Bernoulli
+
+m80.ergm01 <- formula(m80.s ~ edges + kstar(2)            # kstar
+                            + kstar(3) + triangle)
+
+m80.ergm02 <- formula(m80.s ~ edges     # Geometrically weighted degree count
+                    + gwesp(1, fixed=TRUE))
+
+summary.statistics(m80.ergm00)
+summary.statistics(m80.ergm01)
+summary.statistics(m80.ergm02)
+
+```
+
+
+```{r expl.variables, echo=TRUE, message=FALSE, warning=FALSE, fig.width=9}
+# Models with explanatory variables. 1980.
+#
+m80.ergm1 <- formula(m80.s ~ edges + gwesp(log(3), fixed=TRUE)
+                        + nodemain("tree_mass")
+                        + nodemain("leaf_P")
+                        + nodemain("height")
+                        + nodemain("leaf_N")
+                        + nodemain("NP_ratio")) 
+
+m80.ergm2 <- formula(m80.s ~ edges + gwesp(log(3), fixed=TRUE)
+                        + nodemain("tree_mass")
+                #       + nodemain("leaf_P")
+                        + nodemain("height"))
+                #       + nodemain("leaf_N")
+                #       + nodemain("NP_ratio")) 
+m80.ergm3 <- formula(m80.s ~ edges + gwesp(log(3), fixed=TRUE)
+                #       + nodemain("tree_mass")
+                        + nodemain("leaf_P")
+                #       + nodemain("height")
+                        + nodemain("leaf_N")
+                        + nodemain("NP_ratio")) 
+
+m80.ergm11 <- formula(m80.s ~ edges + gwesp(log(3), fixed=TRUE)
+                        + nodemain("tree_mass"))
+
+m80.ergm12 <- formula(m80.s ~ edges + gwesp(log(3), fixed=TRUE)
+                        + nodemain("leaf_N"))
+
+```
+
+
+```{r test.expl.variables, echo=TRUE, message=FALSE, warning=FALSE, fig.width=9}
+# Model tests
+# 
+set.seed(42)
+m80.ergm.fit00 <- ergm(m80.ergm00)
+m80.ergm.fit02 <- ergm(m80.ergm02)
+m80.ergm.fit1 <- ergm(m80.ergm1)    # Full model
+m80.ergm.fit2 <- ergm(m80.ergm2)    # Just tree size
+m80.ergm.fit3 <- ergm(m80.ergm3)    # Just leaf nutrient quality
+m80.ergm.fit11 <- ergm(m80.ergm11)
+m80.ergm.fit12 <- ergm(m80.ergm12)
+
+# NOT RUN
+# mcmc.diagnostics(m80.ergm.fit0)
+# mcmc.diagnostics(m80.ergm.fit1)
+# mcmc.diagnostics(m80.ergm.fit2)
+# mcmc.diagnostics(m80.ergm.fit3)
+# mcmc.diagnostics(m80.ergm.fit11)
+# mcmc.diagnostics(m80.ergm.fit12)
+
+anova.ergm(m80.ergm.fit00, test="Chi")
+anova.ergm(m80.ergm.fit02, test="Chi")
+anova.ergm(m80.ergm.fit1, test="Chi")
+anova.ergm(m80.ergm.fit2, test="Chi")
+anova.ergm(m80.ergm.fit3, test="Chi")
+anova.ergm(m80.ergm.fit11, test="Chi")
+anova.ergm(m80.ergm.fit12, test="Chi")
+
+anova.ergm(m80.ergm.fit00, m80.ergm.fit1, test="Chi")
+anova.ergm(m80.ergm.fit02, m80.ergm.fit1, test="Chi")
+anova.ergm(m80.ergm.fit1, m80.ergm.fit2, test="Chi")
+anova.ergm(m80.ergm.fit1, m80.ergm.fit3, test="Chi")
+anova.ergm(m80.ergm.fit2, m80.ergm.fit3, test="Chi")
+
+summary.ergm(m80.ergm.fit00)
+summary.ergm(m80.ergm.fit02)
+summary.ergm(m80.ergm.fit1)
+summary.ergm(m80.ergm.fit2)
+summary.ergm(m80.ergm.fit3)
+summary.ergm(m80.ergm.fit11)
+summary.ergm(m80.ergm.fit12)
+
+```
+
+
+```{r AICw_ExplVars}
+
+## Compute table
+require(MuMIn)
+tt<- round(BIC(m80.ergm.fit00, m80.ergm.fit02, m80.ergm.fit1, m80.ergm.fit2,
+               m80.ergm.fit3, m80.ergm.fit11, m80.ergm.fit12), 10)
+ttt<- round(Weights(AICc(m80.ergm.fit00, m80.ergm.fit02, m80.ergm.fit1,
+                         m80.ergm.fit2, m80.ergm.fit3, m80.ergm.fit11,
+                         m80.ergm.fit12)), 10)
+model.summ<- arrange(data.frame("model"= row.names(tt), 
+                     tt, "AICw"= ttt), desc(AICw))
+model.summ
+
+```
+
+
+```{r gof, echo=TRUE, message=FALSE, warning=FALSE, fig.width=9}
+# Goodness of fit.
+# 
+gof.m80.ergm02 <- gof(m80.ergm.fit02)
+par(mfrow=c(1, 3))
+plot(gof.m80.ergm02)
+
+gof.m80.ergm1 <- gof(m80.ergm.fit1)
+par(mfrow=c(1, 3))
+plot(gof.m80.ergm1)
+
+gof.m80.ergm2 <- gof(m80.ergm.fit2)
+par(mfrow=c(1, 3))
+plot(gof.m80.ergm2)
+
+gof.m80.ergm3 <- gof(m80.ergm.fit3)
+par(mfrow=c(1, 3))
+plot(gof.m80.ergm3)
+
+gof.m80.ergm11 <- gof(m80.ergm.fit11)
+par(mfrow=c(1, 3))
+plot(gof.m80.ergm11)
+
+gof.m80.ergm12 <- gof(m80.ergm.fit12)
+par(mfrow=c(1, 3))
+plot(gof.m80.ergm12)
+
+```
+
+
+This additional analysis is similar to the previous, but follows:
+Luke, D.A. 2015. _A User’s Guide to Network Analysis in R._ Springer, Berlin. (ISBN 978-3-319-23882-1).
+
+
+```{r Testing2, echo=TRUE, message=FALSE, warning=FALSE, fig.width=9}
+# An additional, redundant test following Luke's book.
+library(ergm)
+DSmod0 <- ergm(m80.s ~ edges,
+    control=control.ergm(seed=40))
+summary(DSmod0)
+
+DSmod1 <- ergm(m80.s ~ edges + 
+                        nodecov('tree_mass') +
+                        nodecov('leaf_P') +
+                        nodecov('height') +
+                        nodecov('leaf_N') +
+                        nodecov('NP_ratio') ,
+               control=control.ergm(seed=40))
+summary(DSmod1)
+DSmod2 <- ergm(m80.s ~ edges + 
+                        nodecov('tree_mass') +
+                #       nodecov('leaf_P') +
+                        nodecov('height'),
+                #       nodecov('leaf_N') +
+                #       nodecov('NP_ratio') ,
+               control=control.ergm(seed=40))
+summary(DSmod2)
+
+anova.ergm(DSmod0, DSmod1, test="Chi")
+anova.ergm(DSmod1, DSmod2, test="Chi")
+
+```
+
+
+```{r AICw_Testing2}
+
+## Compute table
+require(MuMIn)
+tt<- round(BIC(DSmod0, DSmod1, DSmod2), 10)
+ttt<- round(Weights(AICc(DSmod0, DSmod1, DSmod2)), 10)
+data.frame(tt, "AICw"= ttt)
+
+```
+
+
+
+```{r Testing3, echo=TRUE, message=FALSE, warning=FALSE, fig.width=9}
+# Some relationships of node parameters with predictors.
+# 
+
+tt<- data.frame("tree_mass"= m80.s %v% 'tree_mass', 
+                "ttdegree"= sna::degree(m80.s, gmode='graph'),
+                "tteigcentr"= sna::evcent(m80.s, rescale = F, gmode='graph'),
+                "ttclos"= sna::evcent(m80.s, rescale = T, gmode='graph'))
+p1<- ggplot(tt, aes(log(tree_mass), log(ttdegree))) + 
+        geom_point(size=3) + geom_smooth(span = 1.5)
+
+p2<- ggplot(tt, aes(log(tree_mass), log(tteigcentr))) + 
+        geom_point(size=3) + geom_smooth(span = 1.5)
+
+p3<- ggplot(tt, aes(log(tree_mass), log(ttclos))) + 
+        geom_point(size=3) + geom_smooth(span = 1.5)
+
+multiplot(p1, p2, p3, cols=3)
+
+```
+
+
+
+```{r sessioninfo, echo=TRUE}
+sessionInfo()
+```
+

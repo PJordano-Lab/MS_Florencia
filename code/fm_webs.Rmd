@@ -1,0 +1,68 @@
+---
+title: "Networks by year"
+author: "Pedro Jordano"
+date: "13/3/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Plotting the interaction networks by year
+
+For each year, with node labels.
+
+```{r by_year}
+# Plotting bipartite networks from adjacency matrix of two-mode network.
+# Using ggplot2 -----------------------------------------------------------
+# Code for plotting a bipartite network in ggplot2
+#..........................................................................
+require(network)
+require(ggplot2)
+require(sna)
+require(ggnet2)
+# -------------------------------------------------------------------------
+# Bipartite network initialization, starting from an adjacency matrix.
+# Matrix from dataframe.
+w80<-t(m80[,2:25])
+colnames(w80)<- m80[,1]
+net80<-network::network(w80, matrix.type= 'bipartite', ignore.eval= T)
+
+# -------------------------------------------------------------------------
+# Function to compute edge weights, scaled.
+edge.weights<- function(M, x = 10) {
+    # Transpose.
+    M <- t(M)
+    # Edge list and weights.
+    M <- cbind(expand.grid(dimnames(M))[2:1], as.vector(M))
+    # Discard null weights.
+    M <- subset(M, M[, 3] != 0)
+    # Scaled weights.
+    M.scaled <- x*log(M[, 3] + 1) / max(log(M[, 3] + 1))
+    # Vector of edge weights.
+    return(M.scaled)
+}
+ # edge.weights(w80) # On the adjacency matrix
+
+# -------------------------------------------------------------------------
+# Pass the network, edge weights and mode to ggnet.
+# Old:
+# net = bipartite.network(as.matrix(net80), modes = c("Herb", "Trees"))
+# Weighted bipartite network
+bip= network(net80,
+              matrix.type = "bipartite",
+              ignore.eval = FALSE,
+              names.eval = "weights",
+              modes = c("Herb", "Trees"))
+# set colors for each mode
+# col = c("actor" = "grey", "event" = "gold")
+
+ggnet2(bip, node.size = 5,
+       edge.size= edge.weights(w80, 5), edge.alpha= .25,
+       label= TRUE, label.size= 3,
+       color= "mode", palette = "Set2",
+       shape= "mode")
+
+```
+
