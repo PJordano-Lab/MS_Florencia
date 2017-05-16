@@ -23,7 +23,7 @@ library(sna)
 library(ergm)
 library(ggnet)
 library(GGally)
-source("multiplot.R")
+# source("multiplot.R")
 main<- read.csv("../data/interaction_matrix.csv", header= T, sep= ",",dec = ".",
                   na.strings = "NA")
 str(main)
@@ -37,16 +37,14 @@ Fixing the adjacency matrices from the input data. Subset the two sites (`Grazed
 This extracts just the interaction data for total effect (Total effect interaction data is in cols 32-43). The covariates are extracted later.
 
 ```{r adj_mat, echo=T}
-m80<- main %>%  
-          dplyr::filter(year==1980) %>% 
-          select(2:27) 
-m81<- main %>%  
-          dplyr::filter(year==1981) %>% 
-          select(2:27) 
-m82<- main %>%  
-          dplyr::filter(year==1982) %>% 
-          select(2:27) 
-head(m80); head(m81); head(m82)
+grazed<- main %>%  
+          dplyr::filter(site=="grazed") %>% 
+          select(32:43) 
+ungrazed<- main %>%  
+          dplyr::filter(site=="ungrazed") %>% 
+          select(32:43) 
+
+head(grazed); head(ungrazed)
 
 ```
 
