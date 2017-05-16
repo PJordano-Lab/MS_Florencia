@@ -39,35 +39,36 @@ This extracts just the interaction data for total effect (Total effect interacti
 ```{r adj_mat, echo=T}
 grazed<- main %>%  
           dplyr::filter(site=="grazed") %>% 
-          select(32:43) 
+          select(1,32:43) 
+
 ungrazed<- main %>%  
           dplyr::filter(site=="ungrazed") %>% 
-          select(32:43) 
+          select(1,32:43) 
 
 head(grazed); head(ungrazed)
 
 ```
 
-These are labels for plotting, etc. Already checked by Sharon. 
+These are labels for plotting, etc. To be checked by Florencia. 
 
 ```{r labels, echo=TRUE}
 # Labels for family:
-famlab<- c("Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Chrysomelidae","Cicadellidae","Curculionidae","Curculionidae","Curculionidae","Cicadellidae","Geometridae","Orthoptera","Pergidae","Arctiidae","Psyllidae","Psyllidae","Coccidae")
+famlab<- c()
 #
 # Labels for subfamilies:
-sfamlab<- c("Chrysomelidae_Paropsinae","Chrysomelidae_Paropsinae","Chrysomelidae_Chrysomelinae","Chrysomelidae_Paropsinae","Chrysomelidae_Paropsinae","Chrysomelidae_Paropsinae","Chrysomelidae_Cryptocephalinae","Chrysomelidae_Cryptocephalinae","Chrysomelidae_Cryptocephalinae","Chrysomelidae","Chrysomelidae","Chrysomelidae_Eumolpinae","Chrysomelidae_Cryptocephalinae","Cicadellidae","Curculionidae_Curculioninae","Curculionidae_Curculioninae","Curculionidae","Cicadellidae","Geometridae","Orthoptera","Pergidae","Arctiidae","Psyllidae","Psyllidae","Coccidae")
+sfamlab<- c()
 #
 # Labels for feeding modes:
-feedlab<- c("folivore","folivore","folivore","folivore","folivore","folivore","folivore","folivore","folivore","folivore","folivore","folivore","folivore","xylem feeder","weevil","weevil","weevil","xylem feeder","folivore","folivore","folivore","folivore","phloem feeder","phloem feeder","phloem feeder")
+feedlab<- c()
 #
 
 ```
 
-## Plotting the interaction networks by year
+## Plotting the interaction networks by site
 
-For each year, with node labels, weighted adjacency matrices.
+For each site, with node labels, weighted adjacency matrices.
 
-```{r plots_by_year, fig.width=9, eval=T}
+```{r plots_by_site, fig.width=9, eval=T}
 # Plotting bipartite networks from adjacency matrix of two-mode network.
 # Using ggplot2 -----------------------------------------------------------
 # 
@@ -79,17 +80,13 @@ require(ggnet)
 
 # Bipartite network initialization, starting from an adjacency matrix.
 # Matrix from dataframe.
-w80<-t(m80[,2:25])
-colnames(w80)<- m80[,1]
-net80<-network::network(w80, matrix.type= 'bipartite', ignore.eval= T)
+wG<-t(grazed[,2:13])
+colnames(wG)<- grazed[,1]
+netwG<-network::network(wG, matrix.type= 'bipartite', ignore.eval= T)
 
-w81<-t(m81[,2:25])
-colnames(w81)<- m81[,1]
-net81<-network::network(w81, matrix.type= 'bipartite', ignore.eval= T)
-
-w82<-t(m82[,2:25])
-colnames(w82)<- m82[,1]
-net82<-network::network(w82, matrix.type= 'bipartite', ignore.eval= T)
+wUG<-t(ungrazed[,2:13])
+colnames(wUG)<- ungrazed[,1]
+netwUG<-network::network(wUG, matrix.type= 'bipartite', ignore.eval= T)
 
 # Function to compute edge weights, scaled.
 edge.weights<- function(M, x = 10) {
@@ -98,60 +95,44 @@ edge.weights<- function(M, x = 10) {
     # Edge list and weights.
     M <- cbind(expand.grid(dimnames(M))[2:1], as.vector(M))
     # Discard null weights.
-    M <- subset(M, M[, 3] != 0)
+    M <- subset(M, M[, 3] != 0) 
     # Scaled weights.
     M.scaled <- x*log(M[, 3] + 1) / max(log(M[, 3] + 1))
     # Vector of edge weights.
     return(M.scaled)
 }
- # edge.weights(w80) # On the adjacency matrix
 
 # Pass the network, edge weights and mode to ggnet.
 # Old:
 # net = bipartite.network(as.matrix(net80), modes = c("Herb", "Trees"))
 # Weighted bipartite networks
 # 
-# 1980
-bip80= network(net80,
+# GRAZED
+bipwG= network(wG,
               matrix.type = "bipartite",
               ignore.eval = FALSE,
               names.eval = "weights",
-              modes = c("Herb", "Trees"))
+              modes = c("Frug", "Trees"))
 # set colors for each mode
 # col = c("actor" = "grey", "event" = "gold")
 
-ggnet2(bip80, node.size = 5,
-       edge.size= edge.weights(w80, 5), edge.alpha= .25,
+ggnet2(bipwG, node.size = 5,
+       edge.size= edge.weights(wG, 5), edge.alpha= .25,
        label= TRUE, label.size= 3,
        color= "mode", palette = "Set2",
        shape= "mode")
 
-# 1981
-bip81= network(net81,
+# UNGRAZED
+bipwUG= network(wUG,
               matrix.type = "bipartite",
               ignore.eval = FALSE,
               names.eval = "weights",
-              modes = c("Herb", "Trees"))
+              modes = c("Frug", "Trees"))
 # set colors for each mode
 # col = c("actor" = "grey", "event" = "gold")
 
-ggnet2(bip81, node.size = 5,
-       edge.size= edge.weights(w81, 5), edge.alpha= .25,
-       label= TRUE, label.size= 3,
-       color= "mode", palette = "Set2",
-       shape= "mode")
-
-#1982
-bip82= network(net82,
-              matrix.type = "bipartite",
-              ignore.eval = FALSE,
-              names.eval = "weights",
-              modes = c("Herb", "Trees"))
-# set colors for each mode
-# col = c("actor" = "grey", "event" = "gold")
-
-ggnet2(bip82, node.size = 5,
-       edge.size= edge.weights(w82, 5), edge.alpha= .25,
+ggnet2(bipwUG, node.size = 5,
+       edge.size= edge.weights(wUG, 5), edge.alpha= .25,
        label= TRUE, label.size= 3,
        color= "mode", palette = "Set2",
        shape= "mode")
