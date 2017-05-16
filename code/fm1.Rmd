@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo= TRUE, cache=T)
 
 ## Datasets
 
-The data are frequencies of tree-herbivore interactions at the individual level for __Eucalyptus__ trees in Australia.
+The data are frequencies of _Prosopis_ tree-frugivore interactions at the individual tree level in Argentina.
 
 ```{r input, echo= TRUE}
 library(ggplot2)
@@ -24,16 +24,17 @@ library(ergm)
 library(ggnet)
 library(GGally)
 source("multiplot.R")
-main<- read.table("../data/main_matrix.csv", header= T, sep= ",",dec = ".",
+main<- read.csv("../data/interaction_matrix.csv", header= T, sep= ",",dec = ".",
                   na.strings = "NA")
 str(main)
+
 ```
 
 ## Some edits
 
-Fixing the adjacency matrices from the input data. Subset the three years and extract the adjacency matrices for each year.
+Fixing the adjacency matrices from the input data. Subset the two sites (`Grazed` and `Ungrazed`) and extract the adjacency matrices for each site.
 
-This extracts just the interaction data. The covariates are extracted later.
+This extracts just the interaction data for total effect (Total effect interaction data is in cols 32-43). The covariates are extracted later.
 
 ```{r adj_mat, echo=T}
 m80<- main %>%  
