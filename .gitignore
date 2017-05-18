@@ -4,7 +4,8 @@
 
 # Session Data files
 .RData
-
+# My excludes
+/code/fm1_cache/
 # Example code in package build process
 *-Ex.R
 
