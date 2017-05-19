@@ -1,0 +1,13 @@
+Frugivorous.species,Class,Order,Family,Genus,Code,Weight,Local.abundance.grazed,Local.abundance.ungrazed,Local.abundance.Mesquite.grazed,Local.abundance.Mesquite.ungrazed,Interaction.with.Prosopis
+Graomys.griseoflavus,Mammalia,Rodentia,Muridae,Graomys,Gra_gri,0.62,140,187,53,62,antagonist
+Akodon.dolores,Mammalia,Rodentia,Muridae,Akodon,Ako_dol,0.32,136,194,39,40,antagonist
+Calomys.musculinus,Mammalia,Rodentia,Muridae,Calomys,Cal_mus,0.14,77,89,17,21,antagonist
+Microcavia.australis,Mammalia,Rodentia,Caviidae,Microcavia,Mic_aus,0.30,NA,NA,NA,NA,mutualist
+Dolichotis.patagonum,Mammalia,Rodentia,Caviidae,Dolichotis,Dol.pat,8.00,NA,NA,NA,NA,mutualist
+Lycalopex.griseus,Mammalia,Carnivora,Canidae,Lycalopex,Lyc_gri,3.00,NA,NA,NA,NA,mutualist
+Conepatus.chinga,Mammalia,Carnivora,Mephitidae,Conepatus,Cone_chi,2.50,NA,NA,NA,NA,UNK
+Chaetophractus.vellerosus,Mammalia,Xenarthra,Dasypodidae,Chaetophractus,Cha_vill,1.00,NA,NA,NA,NA,UNK
+Tupinambis.rufescens,Reptilia,Lacertilia,Teiidae,Tupinambis,Tup_ruf,4.15,NA,NA,NA,NA,UNK
+Ctenomys.mendocinus,Mammalia,Rodentia,Ctenomyidae,Ctenomys,Cte_men,0.16,NA,NA,NA,NA,UNK
+Bos.taurus,Mammalia,Artyodactila,Bovidae,Bos,Bos_tau,400.00,19 ha/UG,0,NA,0,mutualist
+Equus.caballus,Mammalia,Perissodactyla,Equidae,Equus,Equ_cab,250.00,NA,0,NA,0,mutualist
