@@ -145,7 +145,7 @@ ggnet2(bipwUG, node.size = 5,
 
 The Bernouilli or random model assumes that, for a given pair of nodes, the presence or absence of an edge between that pair is independent of the status of possible edges between any other pairs of nodes.
 
-These three statistics can be used in ergm by specifying terms altkstar, gwdegree, or gwesp, respectively, in the model. 
+These three statistics can be used in `ergm` by specifying terms `altkstar`, `gwdegree`, or `gwesp`, respectively, in the model. 
 
 For all these analyses I've followed:
 Kolaczyk, E.D. and  Csárdi, G. 2014. _Statistical Analysis of Network Data with R_. Springer, Berlin. (ISBN 978-1-4939-0982-7). See `library(sand)`.
@@ -199,7 +199,6 @@ multiplot (p1, p2, cols=2)
 ##### Set matrices and graphs for model testing
 
 For now just the 1980 graph is analyzed.
-
 
 ```{r Bernouilli, echo=TRUE, message=FALSE, warning=FALSE, fig.width=9}
 # Loading vertex attributes for 1980
