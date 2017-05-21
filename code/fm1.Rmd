@@ -24,9 +24,12 @@ library(ergm)
 library(ggnet)
 library(GGally)
 # source("multiplot.R")
-main<- read.csv("../data/interaction_matrix.csv", header= T, sep= ",",dec = ".",
-                  na.strings = "NA")
+main<- read.csv("../data/interaction_matrix.csv", header= T, sep= ",",
+                dec = ".", na.strings = "NA")
 str(main)
+attr<- read.csv("../data/ecological_attributes.csv", header= T, sep= ",",
+                dec = ".", na.strings = "NA")
+str(attr)
 
 ```
 
