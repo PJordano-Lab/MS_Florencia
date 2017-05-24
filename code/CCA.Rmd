@@ -1,0 +1,156 @@
+---
+title: "CCA"
+author: "M. Florencia Miguel"
+date: "22 de mayo de 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r initialize, echo= T, message= FALSE, warning=FALSE}
+
+require(ggplot2)
+require(GGally)
+require(CCA)
+
+```
+
+
+```{r}
+
+can<- read.csv("~/Conicet 2017/Ms_capitulo3/Rcode/data/canonical.correlations.csv",header=T,sep=",",dec=".",na.strings="NA")
+str(can)
+
+```
+
+```{r adj_mat, echo= T, message= FALSE, warning= FALSE}
+
+library(dplyr)
+y<- can %>% 
+    dplyr::select(1,60:71) 
+
+x<- can %>%  
+    dplyr::select(1,4:21)
+
+xb <- can %>%  
+      dplyr::select(1,25:29)
+
+```
+
+```{r variables echo= T, message= TRUE, warning= TRUE}
+#1 to 120 grazed sites, 121 to 190 ungrazed sites
+
+fru <- can [, 60:71]
+
+##to grazed sites eliminate ctenomys fru <- can [1:120, 60:71] fru <- fru[,-10]
+##to ungrazed sites eliminate ctenomys fru <- can [121:190, 60:69], fru <- fru[,-9]
+#fru <- fru [, -9]
+plant <- can [, 4:21]
+
+```
+
+```{r}
+
+ggpairs(fru)
+
+ggpairs(plant)
+
+
+```
+
+```{r correlations}
+
+#we’ll look at the correlations within and between the two sets of variables using the matcor function from the CCA package.
+
+matcor(fru, plant)
+
+```
+
+```{r}
+
+cc1 <- cc(fru, plant)
+
+# display the canonical correlations
+cc1$cor
+
+# raw canonical coefficients
+cc1[3:4]
+
+# compute canonical loadings
+cc2 <- comput(fru, plant, cc1)
+
+# display canonical loadings
+cc2[3:6]
+
+
+```
+
+```{r}
+
+# tests of canonical dimensions
+ev <- (1 - cc1$cor^2)
+
+n <- dim(fru)[1]
+p <- length(fru)
+q <- length(plant)
+k <- min(p, q)
+m <- n - 3/2 - (p + q)/2
+
+w <- rev(cumprod(rev(ev)))
+
+# initialize
+d1 <- d2 <- f <- vector("numeric", k)
+
+for (i in 1:k) {
+    s <- sqrt((p^2 * q^2 - 4)/(p^2 + q^2 - 5))
+    si <- 1/s
+    d1[i] <- p * q
+    d2[i] <- m * s - p * q/2 + 1
+    r <- (1 - w[i]^si)/w[i]^si
+    f[i] <- r * d2[i]/d1[i]
+    p <- p - 1
+    q <- q - 1
+}
+
+pv <- pf(f, d1, d2, lower.tail = FALSE)
+(dmat <- cbind(WilksL = w, F = f, df1 = d1, df2 = d2, p = pv))
+```
+
+```{r standardized}
+# standardized fru canonical coefficients diagonal matrix of fru sd's
+
+s1 <- diag(sqrt(diag(cov(fru))))
+s1 %*% cc1$xcoef
+
+# standardized plant canonical coefficients diagonal matrix of plant sd's
+s2 <- diag(sqrt(diag(cov(plant))))
+s2 %*% cc1$ycoef
+
+```
+
+```{r biplot}
+plt.cc (cc1, d1 = 1, d2 = 2, int = 1, type = "v", ind.names = NULL,
+var.label = TRUE, Xnames = NULL, Ynames = NULL)
+
+
+```
+
+```{r canonical.correlations, echo= TRUE, message= TRUE, warning= TRUE}
+
+library(vegan)
+
+corr<- CCorA(y, x, stand.y= TRUE, stand.x= TRUE, permutations = 0)
+
+biplot(corr, plot.type="biplots", xlabs, plot.axes = 1:2, int=0.5, 
+       col.Y="red", col.X="blue", cex=c(0.7,0.9))
+
+```
+

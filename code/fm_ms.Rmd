@@ -1,0 +1,375 @@
+---
+title: "fm.ms"
+author: "M. Florencia Miguel"
+date: "16 de mayo de 2017"
+output: html_document
+---
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Initialize loading the required `R` packages.
+
+```{r initialize, echo= T, message= FALSE, warning=FALSE}
+
+library(ggplot2)
+library(statnet)
+library(igraph)
+library(sna)
+library(ergm)
+library(ggnetwork)
+library(GGally)
+library(bipartite)
+```
+
+# NETWORKS
+
+```{r}
+main<- read.csv("~/Conicet 2017/Ms_capitulo3/Rcode/data/interaction_matrix.csv",header=T,sep=",",dec=".",na.strings="NA")
+str(main)
+```
+
+
+```{r adj_mat, echo= T}
+
+grazed<- main %>% 
+           dplyr::filter(site=="grazed") %>%  
+           dplyr::select(1,32:43) 
+
+ungrazed<- main %>%  
+          dplyr::filter(site=="ungrazed")%>% 
+          dplyr::select(1,32:43)
+
+both<- main %>%  
+          dplyr::select(1,32:43)
+
+head(grazed); head(ungrazed); head(both)
+
+         
+```
+
+
+```{r labels, echo= TRUE}
+
+  # Labels for family:
+ famlab<- c("Muridae","Muridae","Muridae","Caviidae","Caviidae","Canidae","Mephitidae","Dasypodidae","Teiidae","Ctenomyidae","Bovidae","Equidae")
+
+ expfamlab<- c("Rod_Muridae","Rod_Muridae","Rod_Muridae","Rod_Caviidae","Rod_Caviidae","Car_Canidae","Car_Mephitidae","Xen_Dasypodidae","Lac_Teiidae","Rod_Ctenomyidae","Arty_Bovidae","Peri_Equidae")
+  #
+  
+```
+  
+  
+  ## Plotting the interaction networks by site
+  
+  ## For each site, with node labels, weighted adjacency matrices.
+ 
+```{r plots_by_site, fig.width=9, eval= T}
+  # Plotting bipartite networks from adjacency matrix of two-mode network.
+  # Using ggplot2 -----------------------------------------------------------
+  # 
+ require(ggnetwork)
+  
+  # Bipartite network initialization, starting from an adjacency matrix.
+  # Matrix from dataframe.
+ 
+ wG<-t(grazed[,2:13])
+ colnames(wG)<- grazed[,1]
+ netwG<-network::network(wG, matrix.type= 'bipartite', ignore.eval= T)
+  
+
+ wUG<-t(ungrazed[,2:13])
+ colnames(wUG)<- ungrazed[,1]
+ netwUG<-network::network(wUG, matrix.type= 'bipartite', ignore.eval= T)
+ 
+  
+  # Function to compute edge weights, scaled.
+ edge.weights<- function(M, x = 10) {
+      # Edge list and weights.
+      M <- cbind(expand.grid(dimnames(M))[2:1], as.vector(M))
+      # Discard null weights.
+      M <- subset(M, M[, 3] != 0)
+      M <- subset(M, M[, 3] != 0) 
+      # Scaled weights.
+      M.scaled <- x*log(M[, 3] + 1) / max(log(M[, 3] + 1))
+      # Vector of edge weights.
+      return(M.scaled)
+  }
+  
+  # Weighted bipartite networks
+  # 
+ # GRAZED
+ bipwG= network(wG,
+                matrix.type = "bipartite",
+                ignore.eval = FALSE,
+                names.eval = "weights",
+               modes = c("Frug", "Trees"))
+ 
+  # set colors for each mode
+  #col = c("actor" = "grey", "event" = "gold")
+  
+ ggnet2(bipwG, node.size = 5,
+        edge.size= edge.weights(wG, 5), edge.alpha= .25,
+         label= TRUE, label.size= 3,
+         color= "mode", palette = "Set2",
+         shape= "mode")
+  
+ # UNGRAZED
+ bipwUG= network(wUG,
+                matrix.type = "bipartite",
+                ignore.eval = FALSE,
+                names.eval = "weights",
+               modes = c("Frug", "Trees"))
+  # set colors for each mode
+  #col = c("actor" = "grey", "event" = "gold")
+  
+ ggnet2(bipwUG, node.size = 5,
+        edge.size= edge.weights(wUG, 5), edge.alpha= .25,
+         label= TRUE, label.size= 3,
+         color= "mode", palette = "Set2",
+         shape= "mode")
+ 
+
+```
+
+#Plot bipartite network for all trees 
+
+```{r plot_all_trees, fig.width=9, eval= T}
+
+# Plotting bipartite networks from adjacency matrix of two-mode network.
+  # Using ggplot2 -----------------------------------------------------------
+  # 
+ require(ggnetwork)
+  
+  # Bipartite network initialization, starting from an adjacency matrix.
+  # Matrix from dataframe.
+ 
+
+wboth<-t(both[,2:13])
+ colnames(wboth)<- both[,1]
+ netwboth<-network::network(both, matrix.type= 'bipartite', ignore.eval= T)
+  
+  # Function to compute edge weights, scaled.
+ edge.weights<- function(M, x = 10) {
+      # Edge list and weights.
+      M <- cbind(expand.grid(dimnames(M))[2:1], as.vector(M))
+      # Discard null weights.
+      M <- subset(M, M[, 3] != 0)
+      M <- subset(M, M[, 3] != 0) 
+      # Scaled weights.
+      M.scaled <- x*log(M[, 3] + 1) / max(log(M[, 3] + 1))
+      # Vector of edge weights.
+      return(M.scaled)
+  }
+
+ # Weighted bipartite networks
+  # 
+# Both land uses
+ bipwboth= network(wboth,
+                matrix.type = "bipartite",
+                ignore.eval = FALSE,
+                names.eval = "weights",
+               modes = c("Frug", "Trees"))
+ 
+  # set colors for each mode
+  # col = c("actor" = "grey", "event" = "gold")
+  
+ ggnet2(bipwboth, node.size = 5,
+        edge.size= edge.weights(wboth, 5), edge.alpha= .25,
+         label= TRUE, label.size= 3,
+         color= "mode", palette = "Set2",
+         shape= "mode")
+```
+
+#Calculate Connectance, Modularity and Hamming Distance between networks
+Bipartite provides functions to visualise webs and calculate a series of indices commonly used to describe pattern in (ecological) networks trees as columns (m) and frugivore species (n) as rows, n x m matrix.
+
+### GRAZED
+
+```{r}
+library(bipartite)
+```
+
+```{r indices, echo= TRUE, message= TRUE, warning= TRUE}
+
+splevelG<-specieslevel(wG) # This gives you a lot of parameters
+# for each species and each Prosopis tree
+splevelG
+
+splevelUG<-specieslevel(wUG) # This gives you a lot of parameters
+# for each species and each Prosopis tree
+splevelUG
+
+
+```
+
+```{r modularity, echo=TRUE, message= TRUE, warning= TRUE}
+
+#Grazed sites
+MG<- computeModules(wG, method="Beckett", deep= FALSE, deleteOriginalFiles= FALSE,
+                             steps= 1000, tolerance= 1e-10, experimental= FALSE, 
+                             forceLPA= FALSE)
+
+MG
+
+listModuleInformation(MG)
+
+printoutModuleInformation(MG)
+
+#Ungrazed sites
+MUG<- computeModules(wUG, method="Beckett", deep=FALSE, deleteOriginalFiles=FALSE,
+                             steps= 1000, tolerance= 1e-10, experimental= FALSE, 
+                             forceLPA= FALSE)
+
+MUG
+
+listModuleInformation(MUG)
+
+printoutModuleInformation(MUG)
+
+Mboth<- computeModules(wboth, method="Beckett", deep=FALSE, deleteOriginalFiles=FALSE,
+                             steps= 1000, tolerance= 1e-10, experimental= FALSE, 
+                             forceLPA= FALSE)
+
+Mboth
+
+listModuleInformation(Mboth)
+
+printoutModuleInformation(Mboth)
+
+
+```
+
+
+```{r null models, echo=TRUE, message= TRUE, warning= TRUE}
+
+#Grazed sites
+nullmodel(wG,N= 1000, method= "r2d")
+
+#Ungrazed sites
+nullmodel(wUG,N= 1000, method= "r2d")
+
+
+```
+
+# Hamming Distance, library(sna)
+
+## Is the number of addition/deletion operations required to turn the edge set of G_1 into that of G_2.The Hamming distance is extremely sensitive to nodal labeling, and should not be employed directly when nodes are interchangeable. G_1 and G_2 are labeled graphs
+
+
+```{r hamming distance, echo= TRUE, message= TRUE, warning= TRUE }
+
+hdist(dat, dat2, g1, g2, normalize= TRUE, 
+    diag= FALSE, mode= "digraph")
+
+```
+
+
+
+# MODELS
+ 
+ The Bernoulli or random model assumes that, for a given pair of nodes, the presence or absence of an edge between that pair is independent of the status of possible edges between any other pairs of nodes.
+ 
+ These three statistics can be used in ergm by specifying terms altkstar, gwdegree, or gwesp, respectively, in the model. 
+ 
+ For all these analyses I've followed:
+ Kolaczyk, E.D. and  Cs?rdi, G. 2014. _Statistical Analysis of Network Data with R_. Springer, Berlin. (ISBN 978-1-4939-0982-7). See `library(sand)`.
+ 
+ ##### Build data
+ #### Data set for models building is from ecological_attributes.csv 
+ 
+```{r}
+traits<- read.csv("~/Conicet2017/Ms_capitulo3/Rcode/data/ecological_attributes.csv",header=T,sep=",",dec=".",na.strings="NA")
+str(traits)
+```
+ 
+```{r data.build, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 9}
+ 
+# Add the node attributes
+ # 
+ netwG.g<- graph_from_incidence_matrix(grazed, weighted= T, add.names=NULL)
+ nG.edg<- as_edgelist(netwG.g)
+ 
+ # Subsetting the covariates from the main dataset for each site separately.
+ # 
+ mG_attr<-main %>%  
+           dplyr::filter(site=="grazed") %>% 
+           dplyr::select(c(3,4:22)) 
+ 
+ # Create the attributes matrix
+ V(netwG.g)$trees<-     mG_attr$treesid
+ V(netwG.g)$height<-  mG_attr$height
+ V(netwG.g)$crown.fruits<-     mG_attr$crown.fruits
+ V(netwG.g)$ground.fruits<-     mG_attr$ground.fruits
+ V(netwG.g)$neighbours<-     mG_attr$neighbours
+ V(netwG.g)$Prosopis.neighbours<-   mG_attr$Prosopis.neighbours
+ 
+```
+##### Correlations among covariates
+ 
+```{r correlations, echo=TRUE, message= TRUE, warning= TRUE, fig.width=8}
+ # Correlations among tree characteristics
+ # 
+ mat<-mG_attr[,c(2:20)]
+ mm<- stats::cor(mat, use="pairwise.complete.obs")
+ 
+ library(GGally)
+ p1<- ggcorr(data = NULL, cor_matrix = cor(mm[, -1], use = "everything"))
+ 
+ p2<- ggcorr(mG_attr[,c(2:6)], geom = "blank", label = TRUE, hjust = 0.75) +
+         geom_point(size = 10, aes(color = coefficient > 0, 
+                    alpha = abs(coefficient) > 0.5)) +
+                    scale_alpha_manual(values = c("TRUE" = 0.25, "FALSE" = 0)) +
+                    guides(color = FALSE, alpha = FALSE)
+ multiplot (p1, p2, cols=2)
+ 
+```
+##### Set matrices and graphs for model testing
+ 
+ For now just the grazed graph is analyzed.
+ 
+```{r Bernouilli, echo=TRUE, message= TRUE, warning= TRUE, fig.width=9}
+ # Loading vertex attributes for grazed
+ # 
+ AA <- get.adjacency(netwG.g)
+ v.attrs <- get.data.frame(netwG.g, what="vertices")[1:42,]
+ 
+ library(ergm) # Will load package 'network' as well.
+ grazed.s <- network::as.network(as.matrix(AA),
+                              directed=FALSE, bipartite=42) 
+ network::set.vertex.attribute(grazed.s, "height",
+                                 v.attrs$height) 
+ network::set.vertex.attribute(grazed.s, "crown.fruits",
+                                 v.attrs$crown.fruits) 
+ network::set.vertex.attribute(grazed.s, "ground.fruits",
+                                 v.attrs$ground.fruits)
+ network::set.vertex.attribute(grazed.s, "neighbours",
+                                 v.attrs$neighbours)
+ network::set.vertex.attribute(grazed.s, "Prosopis.neighbours",
+                                 v.attrs$Prosopis.neighbours)
+ 
+ # Random Bernouilli model
+ my.ergm.bern <- formula(grazed.s ~ edges)
+ my.ergm.bern
+ grazed.s ~ edges
+ summary.statistics(my.ergm.bern)
+ 
+ # Models with no explanatory variables
+ # 
+ grazed.ergm00 <- formula(grazed.s ~ edges)                      # Bernoulli
+ 
+ grazed.ergm01 <- formula(grazed.s ~ edges + kstar(2)            # kstar
+                             + kstar(3) + triangle)
+ 
+grazed.ergm02 <- formula(grazed.s ~ edges     # Geometrically weighted degree count
+                     + gwesp(1, fixed=TRUE))
+ 
+ summary.statistics(grazed.ergm00)
+ summary.statistics(grazed.ergm01)
+ summary.statistics(grazed.ergm02)
+ 
+```
+ 
