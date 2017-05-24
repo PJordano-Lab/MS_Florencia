@@ -248,6 +248,7 @@ plotModuleWeb(MG)
 
 
 MUG
+# 0.4083825
 
 listModuleInformation(MUG)
 
@@ -311,9 +312,42 @@ Sys.time() - TIME
 #
 
 #Ungrazed sites
-
+mymat<- wUG                        # [Assign here]
+#
+# Batch to generate the null models for modularity M significance test. ----- 
+# (for each matrix, @30 min for 100 null replicates)
+require(bipartite)
+TIME <- Sys.time()
+# Modularity for observed matrix.
+# Give here the mean observed modularity values.
+mod_obs <- 0.4083825              # [Assign here]
+#
+Msig <- function (mat, mlike)  {
+    require(bipartite)
+    # mat is the input matrix for which M is tested
+    # mlike is the observed mean M value
+    nulls <- nullmodel(mymat, N=100, method=3)
+    modules.nulls <- sapply(nulls, computeModules)
+    like.nulls <- sapply(modules.nulls, function(x) x@likelihood)
+    z <- (mlike - mean(like.nulls))/sd(like.nulls)
+    p <- 2*pnorm(-abs(z))
+    cat("\n\n","P value for modularity M= ", mod_obs, "\n", "\n\n",
+        "zeta=  ", z,
+        "P=  ",format(p, scientific = T),"\n\n")
+        } 
+#
+Msig(mymat, mod_obs)
+#
+Sys.time() - TIME 
 
 ```
+#P value for modularity M=  0.5175455 
+#zeta=   57.90098 P=   0e+00 
+
+#P value for modularity M=  0.4083825 
+#zeta=   25.63243 P=   6.639629e-145
+
+
 
 # Hamming Distance, library(sna)
 
