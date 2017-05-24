@@ -28,7 +28,7 @@ library(bipartite)
 # NETWORKS
 
 ```{r}
-main<- read.csv("~/Conicet 2017/Ms_capitulo3/Rcode/data/interaction_matrix.csv",header=T,sep=",",dec=".",na.strings="NA")
+main<- read.csv("../data/interaction_matrix.csv",header=T,sep=",",dec=".",na.strings="NA")
 str(main)
 ```
 
@@ -38,6 +38,7 @@ str(main)
 grazed<- main %>% 
            dplyr::filter(site=="grazed") %>%  
            dplyr::select(1,32:43) 
+
 
 ungrazed<- main %>%  
           dplyr::filter(site=="ungrazed")%>% 
@@ -63,7 +64,7 @@ head(grazed); head(ungrazed); head(both)
 ```
   
   
-  ## Plotting the interaction networks by site
+  ## Plotting the interaction networks by site.
   
   ## For each site, with node labels, weighted adjacency matrices.
  
@@ -203,6 +204,25 @@ splevelUG<-specieslevel(wUG) # This gives you a lot of parameters
 # for each species and each Prosopis tree
 splevelUG
 
+networklevel(wG, index="ALLBUTDD", level="both", weighted=TRUE, 
+   ISAmethod="Bluethgen",  SAmethod = "Bluethgen", extinctmethod = "r", 
+   nrep = 100, CCfun=median, dist="horn", normalise=TRUE, empty.web=TRUE, 
+   logbase="e", intereven="prod", H2_integer=TRUE, fcweighted=TRUE, 
+   fcdist="euclidean", legacy=FALSE)
+
+grouplevel(wG, index="ALLBUTDD", level="both", weighted=TRUE, empty.web=TRUE, 
+dist="horn", CCfun=mean, logbase="e", normalise=TRUE,  extinctmethod="r", 
+nrep=100, fcdist="euclidean", fcweighted=TRUE)
+
+networklevel(wUG, index="ALLBUTDD", level="both", weighted=TRUE, 
+   ISAmethod="Bluethgen",  SAmethod = "Bluethgen", extinctmethod = "r", 
+   nrep = 100, CCfun=median, dist="horn", normalise=TRUE, empty.web=TRUE, 
+   logbase="e", intereven="prod", H2_integer=TRUE, fcweighted=TRUE, 
+   fcdist="euclidean", legacy=FALSE)
+
+grouplevel(wUG, index="ALLBUTDD", level="both", weighted=TRUE, empty.web=TRUE, 
+dist="horn", CCfun=mean, logbase="e", normalise=TRUE,  extinctmethod="r", 
+nrep=100, fcdist="euclidean", fcweighted=TRUE)
 
 ```
 
@@ -224,11 +244,16 @@ MUG<- computeModules(wUG, method="Beckett", deep=FALSE, deleteOriginalFiles=FALS
                              steps= 1000, tolerance= 1e-10, experimental= FALSE, 
                              forceLPA= FALSE)
 
+plotModuleWeb(MG)
+
+
 MUG
 
 listModuleInformation(MUG)
 
 printoutModuleInformation(MUG)
+plotModuleWeb(MUG)
+
 
 Mboth<- computeModules(wboth, method="Beckett", deep=FALSE, deleteOriginalFiles=FALSE,
                              steps= 1000, tolerance= 1e-10, experimental= FALSE, 
@@ -239,18 +264,53 @@ Mboth
 listModuleInformation(Mboth)
 
 printoutModuleInformation(Mboth)
+plotModuleWeb(Mboth)
 
 
 ```
 
 
-```{r null models, echo=TRUE, message= TRUE, warning= TRUE}
+```{r mod_signif, echo=FALSE, message= TRUE, warning= TRUE}
 
 #Grazed sites
-nullmodel(wG,N= 1000, method= "r2d")
+# --------------------------------------------------------------------
+# [Title]: Modularity analysis.
+# [Date]: 11Jun2013     [Loc]: Sevilla
+# Pedro Jordano.
+# --------------------------------------------------------------------
+## First version 11Jun2013 Revised DATE
+# --------------------------------------------------------------------
+# Interaction matrices to compute the modularity.
+mymat<- wG                        # [Assign here]
+#
+# Batch to generate the null models for modularity M significance test. ----- 
+# (for each matrix, @30 min for 100 null replicates)
+require(bipartite)
+TIME <- Sys.time()
+# Modularity for observed matrix.
+# Give here the mean observed modularity values.
+mod_obs <- 0.5175455              # [Assign here]
+#
+Msig <- function (mat, mlike)  {
+    require(bipartite)
+    # mat is the input matrix for which M is tested
+    # mlike is the observed mean M value
+    nulls <- nullmodel(mymat, N=100, method=3)
+    modules.nulls <- sapply(nulls, computeModules)
+    like.nulls <- sapply(modules.nulls, function(x) x@likelihood)
+    z <- (mlike - mean(like.nulls))/sd(like.nulls)
+    p <- 2*pnorm(-abs(z))
+    cat("\n\n","P value for modularity M= ", mod_obs, "\n", "\n\n",
+        "zeta=  ", z,
+        "P=  ",format(p, scientific = T),"\n\n")
+        } 
+#
+Msig(mymat, mod_obs)
+#
+Sys.time() - TIME 
+#
 
 #Ungrazed sites
-nullmodel(wUG,N= 1000, method= "r2d")
 
 
 ```
