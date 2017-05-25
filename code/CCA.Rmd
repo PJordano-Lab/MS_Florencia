@@ -16,7 +16,7 @@ require(CCA)
 
 ```{r}
 
-can<- read.csv("~/Conicet 2017/Ms_capitulo3/Rcode/data/canonical.correlations.csv",header=T,sep=",",dec=".",na.strings="NA")
+can<- read.csv("../data/canonical.correlations.csv",header=T,sep=",",dec=".",na.strings="NA")
 str(can)
 
 ```
