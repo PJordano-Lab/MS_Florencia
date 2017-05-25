@@ -63,29 +63,16 @@ matcor(fruUG, plantUG)
 
 ```{r corr coefficients, echo= TRUE, message= TRUE, warning= TRUE}
 
+#The function cc performs Canonical Correlation Analysis to highlight correlations between two data matrices
+
 ##Grazed sites
 
-cc1G <- cc(fruG, plantG)
+ccG<-cc(fruG, plantG)
+ccG
 
-cc1G$cor # display the canonical correlations
-
-cc1G[3:4] # raw canonical coefficients
-
-cc2G <- comput(fruG, plantG, cc1G) # compute canonical loadings
-
-cc2G[3:6] # display canonical loadings
- 
 ##Ungrazed sites
-
-cc1UG <- cc(fruUG, plantUG)
-
-cc1UG$cor # display the canonical correlations
-
-cc1UG[3:4] # raw canonical coefficients
-
-cc2UG <- comput(fruUG, plantUG, cc1UG) # compute canonical loadings
-
-cc2UG[3:6] # display canonical loadings
+ccUG<-cc(fruUG, plantUG)
+ccUG
 
 ```
 
@@ -93,7 +80,7 @@ cc2UG[3:6] # display canonical loadings
 
 #Grazed sites
 # tests of canonical dimensions
-ev <- (1 - cc1G$cor^2)
+ev <- (1 - ccG$cor^2)
 
 n <- dim(fruG)[1]
 p <- length(fruG)
@@ -117,17 +104,19 @@ for (i in 1:k) {
     q <- q - 1
 }
 
-pv <- pf(f, d1, d2, lower.tail = FALSE)
+pv <- pf(f, d1, d2, lower.tail = F, log.p=F)
 (dmat <- cbind(WilksL = w, F = f, df1 = d1, df2 = d2, p = pv))
 
 
 ```
 
+#
+
 ```{r test Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE}
 
 #Ungrazed sites
 # tests of canonical dimensions
-ev <- (1 - cc1UG$cor^2)
+ev <- (1 - ccUG$cor^2)
 
 n <- dim(fruUG)[1]
 p <- length(fruUG)
@@ -163,11 +152,11 @@ pv <- pf(f, d1, d2, lower.tail = FALSE)
 # standardized fru canonical coefficients diagonal matrix of fru sd's
 
 s1 <- diag(sqrt(diag(cov(fruG))))
-s1 %*% cc1G$xcoef
+s1 %*% ccG$xcoef
 
 # standardized plant canonical coefficients diagonal matrix of plant sd's
 s2 <- diag(sqrt(diag(cov(plantG))))
-s2 %*% cc1G$ycoef
+s2 %*% ccG$ycoef
 
 ```
 
@@ -176,26 +165,26 @@ s2 %*% cc1G$ycoef
 # standardized fru canonical coefficients diagonal matrix of fru sd's
 
 s1 <- diag(sqrt(diag(cov(fruUG))))
-s1 %*% cc1UG$xcoef
+s1 %*% ccUG$xcoef
 
 # standardized plant canonical coefficients diagonal matrix of plant sd's
 s2 <- diag(sqrt(diag(cov(plantUG))))
-s2 %*% cc1UG$ycoef
+s2 %*% ccUG$ycoef
 
 
 ```
 
-```{r biplot Grazed sites, echo= TRUE, message= TRUE, warning= TRUE}
+```{r biplot Grazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 14, size= 0.01}
 
-plt.cc (cc1G, d1 = 1, d2= 2, int = 1, type = "v", ind.names = NULL,
+plt.cc (ccG, d1 = 1, d2= 2, int = 1, type = "v", ind.names = NULL,
 var.label = TRUE, Xnames = NULL, Ynames = NULL)
 
 
 ```
 
-```{r biplot Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE}
+```{r biplot Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 14, size= 0.01}
 
-plt.cc (cc1UG, d1 = 1, d2 = 2, int = 1, type = "v", ind.names = NULL,
+plt.cc (ccUG, d1 = 1, d2 = 2, int = 1, type = "v", ind.names = NULL,
 var.label = TRUE, Xnames = NULL, Ynames = NULL)
 
 ```
