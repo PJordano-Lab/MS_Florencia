@@ -4,9 +4,6 @@ author: "M. Florencia Miguel"
 date: "16 de mayo de 2017"
 output: html_document
 ---
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -233,28 +230,33 @@ MG<- computeModules(wG, method="Beckett", deep= FALSE, deleteOriginalFiles= FALS
                              steps= 1000, tolerance= 1e-10, experimental= FALSE, 
                              forceLPA= FALSE)
 
-MG
+MG  #0.5175455
 
 listModuleInformation(MG)
 
 printoutModuleInformation(MG)
+
+plotModuleWeb(MG)
 
 #Ungrazed sites
 MUG<- computeModules(wUG, method="Beckett", deep=FALSE, deleteOriginalFiles=FALSE,
                              steps= 1000, tolerance= 1e-10, experimental= FALSE, 
                              forceLPA= FALSE)
 
-plotModuleWeb(MG)
+MUG # 0.4083825
 
-
-MUG
-# 0.4083825
 
 listModuleInformation(MUG)
 
 printoutModuleInformation(MUG)
+
 plotModuleWeb(MUG)
 
+jpeg(filename = "pMUG.jpg",
+     width = 125, height = 48, units = "cm", pointsize = 12,
+     quality = 75,
+     bg = "white", res = 300, family = "", restoreConsole = TRUE,
+     type = c("windows", "cairo"))
 
 Mboth<- computeModules(wboth, method="Beckett", deep=FALSE, deleteOriginalFiles=FALSE,
                              steps= 1000, tolerance= 1e-10, experimental= FALSE, 
@@ -265,6 +267,7 @@ Mboth
 listModuleInformation(Mboth)
 
 printoutModuleInformation(Mboth)
+
 plotModuleWeb(Mboth)
 
 
@@ -341,11 +344,11 @@ Msig(mymat, mod_obs)
 Sys.time() - TIME 
 
 ```
-#P value for modularity M=  0.5175455 
-#zeta=   57.90098 P=   0e+00 
+##Grazed network: P value for modularity M=  0.5175455 
+##zeta=   57.90098 P=   0e+00 
 
-#P value for modularity M=  0.4083825 
-#zeta=   25.63243 P=   6.639629e-145
+##Ungrazed network: P value for modularity M=  0.4083825 
+##zeta=   25.63243 P=   6.639629e-145
 
 
 
@@ -376,7 +379,7 @@ hdist(dat, dat2, g1, g2, normalize= TRUE,
  #### Data set for models building is from ecological_attributes.csv 
  
 ```{r}
-traits<- read.csv("~/Conicet2017/Ms_capitulo3/Rcode/data/ecological_attributes.csv",header=T,sep=",",dec=".",na.strings="NA")
+traits<- read.csv("../data/ecological_attributes.csv",header=T,sep=",",dec=".",na.strings="NA")
 str(traits)
 ```
  
@@ -391,23 +394,31 @@ str(traits)
  # 
  mG_attr<-main %>%  
            dplyr::filter(site=="grazed") %>% 
-           dplyr::select(c(3,4:22)) 
+           dplyr::select(c(1,4:23)) 
  
  # Create the attributes matrix
- V(netwG.g)$trees<-     mG_attr$treesid
+ V(netwG.g)$trees<-     mG_attr$tid
  V(netwG.g)$height<-  mG_attr$height
- V(netwG.g)$crown.fruits<-     mG_attr$crown.fruits
- V(netwG.g)$ground.fruits<-     mG_attr$ground.fruits
- V(netwG.g)$neighbours<-     mG_attr$neighbours
- V(netwG.g)$Prosopis.neighbours<-   mG_attr$Prosopis.neighbours
- 
+ V(netwG.g)$cr.fru<-     mG_attr$cf
+ V(netwG.g)$gr.fru<-     mG_attr$gf
+ V(netwG.g)$neigh<-     mG_attr$neigh
+ V(netwG.g)$Pros.neigh<-   mG_attr$Pn
+ V(netwG.g)$veg.cov.x<-   mG_attr$mvc
+ V(netwG.g)$veg.cov.sd<-   mG_attr$sdvc
+ V(netwG.g)$bare.cov.x<-   mG_attr$mbc  
+ V(netwG.g)$bare.cov.sd<-   mG_attr$sdbc
+ V(netwG.g)$litt.cov.x<-   mG_attr$mlc  
+ V(netwG.g)$litt.cov.sd<-   mG_attr$sdlc
+ V(netwG.g)$H.shannon<-   mG_attr$H 
+ V(netwG.g)$x<-   mG_attr$x 
+ V(netwG.g)$y<-   mG_attr$y 
 ```
 ##### Correlations among covariates
  
 ```{r correlations, echo=TRUE, message= TRUE, warning= TRUE, fig.width=8}
  # Correlations among tree characteristics
  # 
- mat<-mG_attr[,c(2:20)]
+ mat<-mG_attr[,c(2:23)]
  mm<- stats::cor(mat, use="pairwise.complete.obs")
  
  library(GGally)
@@ -428,6 +439,7 @@ str(traits)
 ```{r Bernouilli, echo=TRUE, message= TRUE, warning= TRUE, fig.width=9}
  # Loading vertex attributes for grazed
  # 
+library(sand)
  AA <- get.adjacency(netwG.g)
  v.attrs <- get.data.frame(netwG.g, what="vertices")[1:42,]
  
@@ -466,4 +478,6 @@ grazed.ergm02 <- formula(grazed.s ~ edges     # Geometrically weighted degree co
  summary.statistics(grazed.ergm02)
  
 ```
+ 
+ 
  

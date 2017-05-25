@@ -21,75 +21,83 @@ str(can)
 
 ```
 
-```{r adj_mat, echo= TRUE, message= FALSE, warning= FALSE}
-library(dplyr)
-y<- can %>% 
-    dplyr::select(1,60:71) 
 
-x<- can %>%  
-    dplyr::select(1,4:21)
+```{r variables, echo= TRUE, message= TRUE, warning= TRUE}
 
-xb <- can %>%  
-      dplyr::select(1,25:29)
-
-```
-
-```{r variables echo= TRUE, message= TRUE, warning= TRUE}
 #1 to 120 grazed sites, 121 to 190 ungrazed sites
-
-fru <- can [, 60:71]
-
-##to grazed sites eliminate ctenomys fru <- can [1:120, 60:71] fru <- fru[,-10]
+#to grazed sites eliminate ctenomys fru <- can [1:120, 60:71] fru <- fru[,-10]
 ##to ungrazed sites eliminate ctenomys fru <- can [121:190, 60:69], fru <- fru[,-9]
-#fru <- fru [, -9]
-plant <- can [, 4:21]
+
+#Grazed sites
+
+fruG <- can [1:120, 60:71]
+fruG <- fruG [, -10]
+plantG <- can [1:120, 4:21]
+
+
+#Ungrazed sites
+
+fruUG <- can [121:190, 60:69]
+fruUG <- fruUG [, -9]
+plantUG <- can [121:190, 4:21]
 
 ```
 
 ```{r}
 
-ggpairs(fru)
+ggpairs(fruG)
 
-ggpairs(plant)
-
+ggpairs(plantG)
 
 ```
 
-```{r correlations}
+```{r correlations, echo= TRUE, message= TRUE, warning= TRUE}
 
 #we’ll look at the correlations within and between the two sets of variables using the matcor function from the CCA package.
 
-matcor(fru, plant)
+matcor(fruG, plantG)
+
+matcor(fruUG, plantUG)
 
 ```
 
-```{r}
+```{r corr coefficients, echo= TRUE, message= TRUE, warning= TRUE}
 
-cc1 <- cc(fru, plant)
+##Grazed sites
 
-# display the canonical correlations
-cc1$cor
+cc1G <- cc(fruG, plantG)
 
-# raw canonical coefficients
-cc1[3:4]
+cc1G$cor # display the canonical correlations
 
-# compute canonical loadings
-cc2 <- comput(fru, plant, cc1)
+cc1G[3:4] # raw canonical coefficients
 
-# display canonical loadings
-cc2[3:6]
+cc2G <- comput(fruG, plantG, cc1G) # compute canonical loadings
 
+cc2G[3:6] # display canonical loadings
+ 
+##Ungrazed sites
+
+cc1UG <- cc(fruUG, plantUG)
+
+cc1UG$cor # display the canonical correlations
+
+cc1UG[3:4] # raw canonical coefficients
+
+cc2UG <- comput(fruUG, plantUG, cc1UG) # compute canonical loadings
+
+cc2UG[3:6] # display canonical loadings
 
 ```
 
-```{r}
+```{r test Grazed sites, echo= TRUE, message= TRUE, warning= TRUE}
 
+#Grazed sites
 # tests of canonical dimensions
-ev <- (1 - cc1$cor^2)
+ev <- (1 - cc1G$cor^2)
 
-n <- dim(fru)[1]
-p <- length(fru)
-q <- length(plant)
+n <- dim(fruG)[1]
+p <- length(fruG)
+q <- length(plantG)
 k <- min(p, q)
 m <- n - 3/2 - (p + q)/2
 
@@ -111,23 +119,84 @@ for (i in 1:k) {
 
 pv <- pf(f, d1, d2, lower.tail = FALSE)
 (dmat <- cbind(WilksL = w, F = f, df1 = d1, df2 = d2, p = pv))
+
+
 ```
 
-```{r standardized}
+```{r test Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE}
+
+#Ungrazed sites
+# tests of canonical dimensions
+ev <- (1 - cc1UG$cor^2)
+
+n <- dim(fruUG)[1]
+p <- length(fruUG)
+q <- length(plantUG)
+k <- min(p, q)
+m <- n - 3/2 - (p + q)/2
+
+w <- rev(cumprod(rev(ev)))
+
+# initialize
+d1 <- d2 <- f <- vector("numeric", k)
+
+for (i in 1:k) {
+    s <- sqrt((p^2 * q^2 - 4)/(p^2 + q^2 - 5))
+    si <- 1/s
+    d1[i] <- p * q
+    d2[i] <- m * s - p * q/2 + 1
+    r <- (1 - w[i]^si)/w[i]^si
+    f[i] <- r * d2[i]/d1[i]
+    p <- p - 1
+    q <- q - 1
+}
+
+pv <- pf(f, d1, d2, lower.tail = FALSE)
+(dmat <- cbind(WilksL = w, F = f, df1 = d1, df2 = d2, p = pv))
+
+
+```
+
+
+```{r standardized Grazed sites, echo= TRUE, message= TRUE, warning= TRUE}
+
 # standardized fru canonical coefficients diagonal matrix of fru sd's
 
-s1 <- diag(sqrt(diag(cov(fru))))
-s1 %*% cc1$xcoef
+s1 <- diag(sqrt(diag(cov(fruG))))
+s1 %*% cc1G$xcoef
 
 # standardized plant canonical coefficients diagonal matrix of plant sd's
-s2 <- diag(sqrt(diag(cov(plant))))
-s2 %*% cc1$ycoef
+s2 <- diag(sqrt(diag(cov(plantG))))
+s2 %*% cc1G$ycoef
 
 ```
 
-```{r biplot}
-plt.cc (cc1, d1 = 1, d2 = 2, int = 1, type = "v", ind.names = NULL,
+```{r standardized Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE}
+
+# standardized fru canonical coefficients diagonal matrix of fru sd's
+
+s1 <- diag(sqrt(diag(cov(fruUG))))
+s1 %*% cc1UG$xcoef
+
+# standardized plant canonical coefficients diagonal matrix of plant sd's
+s2 <- diag(sqrt(diag(cov(plantUG))))
+s2 %*% cc1UG$ycoef
+
+
+```
+
+```{r biplot Grazed sites, echo= TRUE, message= TRUE, warning= TRUE}
+
+plt.cc (cc1G, d1 = 1, d2= 2, int = 1, type = "v", ind.names = NULL,
 var.label = TRUE, Xnames = NULL, Ynames = NULL)
 
 
 ```
+
+```{r biplot Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE}
+
+plt.cc (cc1UG, d1 = 1, d2 = 2, int = 1, type = "v", ind.names = NULL,
+var.label = TRUE, Xnames = NULL, Ynames = NULL)
+
+```
+
