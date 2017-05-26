@@ -63,7 +63,7 @@ matcor(fruUG, plantUG)
 
 ```{r corr coefficients, echo= TRUE, message= TRUE, warning= TRUE}
 
-#The function cc performs Canonical Correlation Analysis to highlight correlations between two data matrices
+#The function cc performs Canonical Correlation Analysis to highlight correlations between the two data sets
 
 ##Grazed sites
 
@@ -79,7 +79,9 @@ ccUG
 ```{r test Grazed sites, echo= TRUE, message= TRUE, warning= TRUE}
 
 #Grazed sites
-# tests of canonical dimensions
+# tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model.
+#I adapted the code obtained from https://stats.idre.ucla.edu/r/dae/canonical-correlation-analysis/ (UCLA Statistical Consulting Group, UCLA= University of California in Los Ángeles)
+
 ev <- (1 - ccG$cor^2)
 
 n <- dim(fruG)[1]
@@ -110,12 +112,13 @@ pv <- pf(f, d1, d2, lower.tail = F, log.p=F)
 
 ```
 
-#
+
 
 ```{r test Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE}
 
 #Ungrazed sites
-# tests of canonical dimensions
+# tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model.
+
 ev <- (1 - ccUG$cor^2)
 
 n <- dim(fruUG)[1]
@@ -145,16 +148,18 @@ pv <- pf(f, d1, d2, lower.tail = FALSE)
 
 
 ```
-
+The lambda value represents the total variance not explained by the full canonical model. So, 1- lambda represents the total variance of original variables explained by the canonical function.   
 
 ```{r standardized Grazed sites, echo= TRUE, message= TRUE, warning= TRUE}
 
-# standardized fru canonical coefficients diagonal matrix of fru sd's
+# standardized fru canonical coefficients diagonal matrix of fru sd's.
+# Standardized coefficients represents the weight of the measured variables in producing canonical variables scores. 
 
 s1 <- diag(sqrt(diag(cov(fruG))))
 s1 %*% ccG$xcoef
 
 # standardized plant canonical coefficients diagonal matrix of plant sd's
+
 s2 <- diag(sqrt(diag(cov(plantG))))
 s2 %*% ccG$ycoef
 
@@ -163,6 +168,7 @@ s2 %*% ccG$ycoef
 ```{r standardized Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE}
 
 # standardized fru canonical coefficients diagonal matrix of fru sd's
+# Standardized coefficients represents the weight of the measured variables in producing canonical variables scores.
 
 s1 <- diag(sqrt(diag(cov(fruUG))))
 s1 %*% ccUG$xcoef
