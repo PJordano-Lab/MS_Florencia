@@ -25,24 +25,21 @@ str(can)
 ```{r variables, echo= TRUE, message= TRUE, warning= TRUE}
 
 #1 to 120 grazed sites, 121 to 190 ungrazed sites
-#to grazed sites eliminate ctenomys fru <- can [1:120, 60:71] fru <- fru[,-10]
-##to ungrazed sites eliminate ctenomys fru <- can [121:190, 60:69], fru <- fru[,-9]
+#to grazed sites eliminate ctenomys fru <- can [1:120, 59:70] fru <- fru[,-10]
+##to ungrazed sites eliminate ctenomys (when using the total effect) fru <- can [121:190, 60:69], fru <- fru[,-9]
+#vistis 31:42; fruits consumed 43:54; total effect 59:70
 
 #Grazed sites
 
-fruG <- can [1:120, 60:71]
+fruG <- can [1:120, 31:42]
 fruG <- fruG [, -10]
 plantG <- can [1:120, 4:21]
 
 
 #Ungrazed sites
 
-fruUG <- can [121:190, 60:69]
-fruUG <- fruUG [, -9]
+fruUG <- can [121:190, 31:40]
 plantUG <- can [121:190, 4:21]
-
-#habitat variables 
-planth <- can [121:190, 24:30]
 
 ```
 
