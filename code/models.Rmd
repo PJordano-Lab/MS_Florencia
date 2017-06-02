@@ -16,111 +16,529 @@ knitr::opts_chunk$set(echo = TRUE)
  These three statistics can be used in ergm by specifying terms altkstar, gwdegree, or gwesp, respectively, in the model. 
  
  For all these analyses I've followed:
- Kolaczyk, E.D. and  Cs?rdi, G. 2014. _Statistical Analysis of Network Data with R_. Springer, Berlin. (ISBN 978-1-4939-0982-7). See `library(sand)`.
+ Kolaczyk, E.D. and  Csardi, G. 2014. _Statistical Analysis of Network Data with R_. Springer, Berlin. (ISBN 978-1-4939-0982-7). See `library(sand)`.
  
  ##### Build data
- #### Data set for models building is from ecological_attributes.csv 
+ #### Data set for models building is from ecological_attributes.csv
  
-```{r}
-traits<- read.csv("../data/ecological_attributes.csv",header=T,sep=",",dec=".",na.strings="NA")
-str(traits)
+```{r initialize, message= FALSE, warning=FALSE}
+
+library(sand)
+library(ergm)
+library(igraph)
+library(ggplot2)
+
 ```
  
-```{r data.build, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 9}
+```{r}
+mod<- read.csv("../data/canonical.correlations.csv",header=T,sep=",",dec=".",na.strings="NA")
+str(mod)
+
+```
+#GRAZED LAND USES
+
+```{r data.grazed.build, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 9}
  
-# Add the node attributes
+# Add the node attributes from tree traits
  # 
- netwG.g<- graph_from_incidence_matrix(grazed, weighted= T, add.names=NULL)
- nG.edg<- as_edgelist(netwG.g)
+ 
+grazed<- mod %>% 
+           dplyr::filter(site=="grazed") %>%  
+           dplyr::select(1,32:43) 
+           
+           
+
+netG.g<- graph_from_incidence_matrix(grazed, weighted= T, add.names=NULL)
+nG.edg<- as_edgelist(netG.g)
+
  
  # Subsetting the covariates from the main dataset for each site separately.
  # 
- mG_attr<-main %>%  
+ mG_attr<-mod %>%  
            dplyr::filter(site=="grazed") %>% 
-           dplyr::select(c(1,4:23)) 
+           dplyr::select(c(1,4:23))
+           
  
  # Create the attributes matrix
- V(netwG.g)$trees<-     mG_attr$tid
- V(netwG.g)$height<-  mG_attr$height
- V(netwG.g)$cr.fru<-     mG_attr$cf
- V(netwG.g)$gr.fru<-     mG_attr$gf
- V(netwG.g)$neigh<-     mG_attr$neigh
- V(netwG.g)$Pros.neigh<-   mG_attr$Pn
- V(netwG.g)$veg.cov.x<-   mG_attr$mvc
- V(netwG.g)$veg.cov.sd<-   mG_attr$sdvc
- V(netwG.g)$bare.cov.x<-   mG_attr$mbc  
- V(netwG.g)$bare.cov.sd<-   mG_attr$sdbc
- V(netwG.g)$litt.cov.x<-   mG_attr$mlc  
- V(netwG.g)$litt.cov.sd<-   mG_attr$sdlc
- V(netwG.g)$H.shannon<-   mG_attr$H 
- V(netwG.g)$x<-   mG_attr$x 
- V(netwG.g)$y<-   mG_attr$y 
+ V(netG.g)$trees<-     mG_attr$trees
+ V(netG.g)$height<-  mG_attr$height
+ V(netG.g)$cr.fru<-     mG_attr$cr.fru
+ V(netG.g)$gr.fru<-     mG_attr$gr.fru
+ V(netG.g)$neigh<-     mG_attr$neigh
+ V(netG.g)$Pros.neigh<-   mG_attr$Pros.neigh
+ V(netG.g)$veg.cov.x<-   mG_attr$veg.cov.x
+ V(netG.g)$veg.cov.sd<-   mG_attr$veg.cov.sd
+ V(netG.g)$bare.cov.x<-   mG_attr$bare.cov.x  
+ V(netG.g)$bare.cov.sd<-   mG_attr$bare.cov.sd
+ V(netG.g)$litt.cov.x<-   mG_attr$litt.cov.x 
+ V(netG.g)$litt.cov.sd<-   mG_attr$litt.cov.sd
+ V(netG.g)$H.shannon<-   mG_attr$H.shannon
+ V(netG.g)$x<-   mG_attr$x 
+ V(netG.g)$y<-   mG_attr$y 
+
 ```
+
+
 ##### Correlations among covariates
  
 ```{r correlations, echo=TRUE, message= TRUE, warning= TRUE, fig.width=8}
- # Correlations among tree characteristics
+ # Correlations among tree traits
  # 
- mat<-mG_attr[,c(2:23)]
+ mat<-mG_attr[,c(2:21)]
  mm<- stats::cor(mat, use="pairwise.complete.obs")
  
  library(GGally)
+ library(ggplot2)
  p1<- ggcorr(data = NULL, cor_matrix = cor(mm[, -1], use = "everything"))
  
- p2<- ggcorr(mG_attr[,c(2:6)], geom = "blank", label = TRUE, hjust = 0.75) +
+ p2<- ggcorr(mG_attr[,c(2:21)], geom = "blank", label = TRUE, hjust = 0.75) +
          geom_point(size = 10, aes(color = coefficient > 0, 
                     alpha = abs(coefficient) > 0.5)) +
                     scale_alpha_manual(values = c("TRUE" = 0.25, "FALSE" = 0)) +
                     guides(color = FALSE, alpha = FALSE)
- multiplot (p1, p2, cols=2)
  
+multiplot(p1,p2,cols=2)
 ```
 ##### Set matrices and graphs for model testing
  
  For now just the grazed graph is analyzed.
  
-```{r Bernouilli, echo=TRUE, message= TRUE, warning= TRUE, fig.width=9}
- # Loading vertex attributes for grazed
+```{r Bernoulli grazed, echo=TRUE, message= TRUE, warning= TRUE, fig.width=9}
+ #First separating the network into adjacency matrix and attributes
+ #Loading vertex attributes for grazed
  # 
 library(sand)
- AA <- get.adjacency(netwG.g)
- v.attrs <- get.data.frame(netwG.g, what="vertices")[1:42,]
+ AA <- get.adjacency(netG.g)
+ v.attrs <- get.data.frame(netG.g, what="vertices")[1:120,]
  
+ #Then, creating the analogous network object for ergm
  library(ergm) # Will load package 'network' as well.
  grazed.s <- network::as.network(as.matrix(AA),
-                              directed=FALSE, bipartite=42) 
+                              directed=FALSE, bipartite=120) 
  network::set.vertex.attribute(grazed.s, "height",
                                  v.attrs$height) 
  network::set.vertex.attribute(grazed.s, "crown.fruits",
-                                 v.attrs$crown.fruits) 
- network::set.vertex.attribute(grazed.s, "ground.fruits",
-                                 v.attrs$ground.fruits)
+                                 v.attrs$cr.fru) 
  network::set.vertex.attribute(grazed.s, "neighbours",
-                                 v.attrs$neighbours)
+                                 v.attrs$neigh)
  network::set.vertex.attribute(grazed.s, "Prosopis.neighbours",
-                                 v.attrs$Prosopis.neighbours)
+                                 v.attrs$Pros.neigh)
+ network::set.vertex.attribute(grazed.s, "Vegetation cover",
+                                 v.attrs$veg.cov.x)
  
- # Random Bernouilli model
+ # Specifying Random Bernouilli model
  my.ergm.bern <- formula(grazed.s ~ edges)
  my.ergm.bern
  grazed.s ~ edges
- summary.statistics(my.ergm.bern)
+ summary.statistics(my.ergm.bern) #edges 995
  
  # Models with no explanatory variables
  # 
  grazed.ergm00 <- formula(grazed.s ~ edges)                      # Bernoulli
  
- grazed.ergm01 <- formula(grazed.s ~ edges + kstar(2)            # kstar
+ grazed.ergm01 <- formula(grazed.s ~ edges + kstar(2)            # kstar and triangle
                              + kstar(3) + triangle)
  
 grazed.ergm02 <- formula(grazed.s ~ edges     # Geometrically weighted degree count
                      + gwesp(1, fixed=TRUE))
  
- summary.statistics(grazed.ergm00)
- summary.statistics(grazed.ergm01)
- summary.statistics(grazed.ergm02)
+ summary.statistics(grazed.ergm00)#edges 995
+ summary.statistics(grazed.ergm01)#edges 995; kstar2 60946; kstar3 2255148, triangle 0
+ summary.statistics(grazed.ergm02)#edges 995, gwesp.fixed.1 0
  
 ```
+
  
+```{r models fit grazed, echo=TRUE, message= TRUE, warning= TRUE}
+
+# Models with explanatory variables. Grazed.
+#
+grazed.ergm1 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+                        + nodemain("height")
+                        + nodemain("crown.fruits")
+                        + nodemain("neighbours")
+                        + nodemain("Prosopis.neighbours")
+                        + nodemain("Vegetation cover")) 
+
+#explanation of transitivity https://www.sci.unich.it/~francesc/teaching/network/transitivity.html
+
+grazed.ergm2 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
+                        + nodemain("height")
+                       + nodemain("crown.fruits"))
+                    #    + nodemain("neighbours")
+                     #   + nodemain("Prosopis.neighbours")
+                     #   + nodemain("Vegetation cover")) 
  
+grazed.ergm3 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
+                      #  + nodemain("height")
+                      #  + nodemain("crown.fruits")
+                        + nodemain("neighbours")
+                        + nodemain("Prosopis.neighbours")
+                        + nodemain("Vegetation cover")) 
+                    
+
+grazed.ergm4 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
+                        + nodemain("Vegetation cover"))
+
+grazed.ergm5 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
+                        + nodemain("crown.fruits"))
+
+```
+
+
+```{r model tests grazed, echo=TRUE, message= TRUE, warning= TRUE}
+# Model tests
+# 
+set.seed(42)
+grazed.ergm.fit00 <- ergm(grazed.ergm00)
+grazed.ergm.fit02 <- ergm(grazed.ergm02)
+grazed.ergm.fit1 <- ergm(grazed.ergm1)    # Full model
+grazed.ergm.fit2 <- ergm(grazed.ergm2)    #with intrinsic variables
+grazed.ergm.fit3 <- ergm(grazed.ergm3)    #with extrinsic variables 
+grazed.ergm.fit4 <- ergm(grazed.ergm4)    #only with vegetation cover
+grazed.ergm.fit5 <- ergm(grazed.ergm5)    #only with crown fruits
+
+# NOT RUN
+# mcmc.diagnostics(m80.ergm.fit0)
+# mcmc.diagnostics(m80.ergm.fit1)
+# mcmc.diagnostics(m80.ergm.fit2)
+# mcmc.diagnostics(m80.ergm.fit3)
+# mcmc.diagnostics(m80.ergm.fit11)
+# mcmc.diagnostics(m80.ergm.fit12)
+
+anova.ergm(grazed.ergm.fit00, test="Chi") #page 92 book
+anova.ergm(grazed.ergm.fit02, test="Chi")
+anova.ergm(grazed.ergm.fit1, test="Chi")
+anova.ergm(grazed.ergm.fit2, test="Chi")
+anova.ergm(grazed.ergm.fit3, test="Chi")
+anova.ergm(grazed.ergm.fit4, test="Chi")
+anova.ergm(grazed.ergm.fit5, test="Chi")
+
+anova.ergm(grazed.ergm.fit00, grazed.ergm.fit1, test="Chi")
+anova.ergm(grazed.ergm.fit02, grazed.ergm.fit1, test="Chi")
+anova.ergm(grazed.ergm.fit1, grazed.ergm.fit2, test="Chi")
+anova.ergm(grazed.ergm.fit1, grazed.ergm.fit3, test="Chi")
+anova.ergm(grazed.ergm.fit2, grazed.ergm.fit3, test="Chi")
+anova.ergm(grazed.ergm.fit2, grazed.ergm.fit5, test="Chi")
+anova.ergm(grazed.ergm.fit3, grazed.ergm.fit4, test="Chi")
+
+summary.ergm(grazed.ergm.fit00) 
+summary.ergm(grazed.ergm.fit02)
+summary.ergm(grazed.ergm.fit1) #interpretation of estimates page 94 book
+summary.ergm(grazed.ergm.fit2)
+summary.ergm(grazed.ergm.fit3)
+summary.ergm(grazed.ergm.fit4)
+summary.ergm(grazed.ergm.fit5)
+```
+
+
+```{r}
+## Compute table
+require(MuMIn)
+library(dplyr)
+
+tt<- round(BIC(grazed.ergm.fit00, grazed.ergm.fit02, grazed.ergm.fit1, grazed.ergm.fit2,
+               grazed.ergm.fit3, grazed.ergm.fit4, grazed.ergm.fit5), 10)
+ttt<- round(Weights(AICc(grazed.ergm.fit00, grazed.ergm.fit02, grazed.ergm.fit1, grazed.ergm.fit2,
+               grazed.ergm.fit3, grazed.ergm.fit4, grazed.ergm.fit5)), 10)
+model.summ<- arrange(data.frame("model"= row.names(tt), 
+                     tt, "AICw"= ttt), desc(AICw))
+model.summ
+
+```
+
+```{r}
+# Goodness of fit.
+# 
+gof.grazed.ergm02 <- gof(grazed.ergm.fit02)
+par(mfrow=c(1, 3))
+plot(gof.grazed.ergm02)
+
+gof.grazed.ergm1 <- gof(grazed.ergm.fit1)
+par(mfrow=c(1, 3))
+plot(gof.grazed.ergm1)
+
+gof.grazed.ergm2 <- gof(grazed.ergm.fit2)
+par(mfrow=c(1, 3))
+plot(gof.grazed.ergm2)
+
+gof.grazed.ergm3 <- gof(grazed.ergm.fit3)
+par(mfrow=c(1, 3))
+plot(gof.grazed.ergm3)
+
+gof.grazed.ergm4 <- gof(grazed.ergm.fit4)
+par(mfrow=c(1, 3))
+plot(gof.grazed.ergm4)
+
+gof.grazed.ergm5 <- gof(grazed.ergm.fit5)
+par(mfrow=c(1, 3))
+plot(gof.grazed.ergm5)
+
+```
+
+
+```{r}
+# Some relationships of node parameters with predictors.
+# 
+
+tt<- data.frame("height"= grazed.s %v% 'height', 
+                "ttdegree"= sna::degree(grazed.s, gmode='graph'),
+                "tteigcentr"= sna::evcent(grazed.s, rescale = F, gmode='graph'),
+                "ttclos"= sna::evcent(grazed.s, rescale = T, gmode='graph'))
+p1<- ggplot(tt, aes(log(height), log(ttdegree))) + 
+        geom_point(size=3) + geom_smooth(span = 1.5)
+
+p2<- ggplot(tt, aes(log('Vegetation cover'), log(tteigcentr))) + 
+        geom_point(size=3) + geom_smooth(span = 1.5)
+
+p3<- ggplot(tt, aes(log('Vegetation cover'), log(ttclos))) + 
+        geom_point(size=3) + geom_smooth(span = 1.5)
+
+p1
+p2
+p3
+
+multiplot(p1, p2, p3, cols=3)
+
+```
+
+#UNGRAZED LAND USES
+
+```{r data.ungrazed.build, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 9}
  
+# Add the node attributes from tree traits
+ # 
+ 
+ungrazed<- mod %>% 
+           dplyr::filter(site=="ungrazed") %>%  
+           dplyr::select(1,32:43) 
+           
+           
+
+netUG.g<- graph_from_incidence_matrix(ungrazed, weighted= T, add.names=NULL)
+nUG.edg<- as_edgelist(netUG.g)
+
+ 
+ # Subsetting the covariates from the main dataset for each site separately.
+ # 
+ mUG_attr<-mod %>%  
+           dplyr::filter(site=="ungrazed") %>% 
+           dplyr::select(c(1,4:23))
+           
+ 
+ # Create the attributes matrix
+ V(netUG.g)$trees<-     mUG_attr$trees
+ V(netUG.g)$height<-  mUG_attr$height
+ V(netUG.g)$cr.fru<-     mUG_attr$cr.fru
+ V(netUG.g)$gr.fru<-     mUG_attr$gr.fru
+ V(netUG.g)$neigh<-     mUG_attr$neigh
+ V(netUG.g)$Pros.neigh<-   mUG_attr$Pros.neigh
+ V(netUG.g)$veg.cov.x<-   mUG_attr$veg.cov.x
+ V(netUG.g)$veg.cov.sd<-   mUG_attr$veg.cov.sd
+ V(netUG.g)$bare.cov.x<-   mUG_attr$bare.cov.x  
+ V(netUG.g)$bare.cov.sd<-   mUG_attr$bare.cov.sd
+ V(netUG.g)$litt.cov.x<-   mUG_attr$litt.cov.x 
+ V(netUG.g)$litt.cov.sd<-   mUG_attr$litt.cov.sd
+ V(netUG.g)$H.shannon<-   mUG_attr$H.shannon
+ V(netUG.g)$x<-   mUG_attr$x 
+ V(netUG.g)$y<-   mUG_attr$y 
+
+```
+
+##### Set matrices and graphs for model testing
+ 
+ For now just the grazed graph is analyzed.
+ 
+```{r Bernoulli ungrazed, echo=TRUE, message= TRUE, warning= TRUE, fig.width=9}
+ #First separating the network into adjacency matrix and attributes
+ #Loading vertex attributes for grazed
+ # 
+library(sand)
+ AA <- get.adjacency(netUG.g)
+ v.attrs <- get.data.frame(netUG.g, what="vertices")[121:190,]
+ 
+ #Then, creating the analogous network object for ergm
+ library(ergm) # Will load package 'network' as well.
+ ungrazed.s <- network::as.network(as.matrix(AA),
+                              directed=FALSE, bipartite=70) 
+ network::set.vertex.attribute(ungrazed.s, "height",
+                                 v.attrs$height) 
+ network::set.vertex.attribute(ungrazed.s, "crown.fruits",
+                                 v.attrs$cr.fru) 
+ network::set.vertex.attribute(ungrazed.s, "ground.fruits",
+                                 v.attrs$gr.fru)
+ network::set.vertex.attribute(ungrazed.s, "neighbours",
+                                 v.attrs$neigh)
+ network::set.vertex.attribute(ungrazed.s, "Vegetation cover",
+                                 v.attrs$veg.cov.x)
+ network::set.vertex.attribute(ungrazed.s, "Bare cover",
+                                 v.attrs$bare.cov.x)
+ network::set.vertex.attribute(ungrazed.s, "Shannon",
+                                 v.attrs$H.shannon)
+ # Specifying Random Bernouilli model
+ my.ergm.bern <- formula(ungrazed.s ~ edges)
+ my.ergm.bern
+ ungrazed.s ~ edges
+ summary.statistics(my.ergm.bern) #edges 995
+ 
+ # Models with no explanatory variables
+ # 
+ ungrazed.ergm00 <- formula(ungrazed.s ~ edges)                      # Bernoulli
+ 
+ ungrazed.ergm01 <- formula(ungrazed.s ~ edges + kstar(2)            # kstar and triangle
+                             + kstar(3) + triangle)
+ 
+ungrazed.ergm02 <- formula(ungrazed.s ~ edges     # Geometrically weighted degree count
+                     + gwesp(1, fixed=TRUE))
+ 
+ summary.statistics(ungrazed.ergm00)#edges 315
+ summary.statistics(ungrazed.ergm01)#edges 315; kstar2 10316; kstar3 219625, triangle 0
+ summary.statistics(ungrazed.ergm02)#edges 315, gwesp.fixed.1 0
+ 
+```
+
+ 
+```{r models fit ungrazed, echo=TRUE, message= TRUE, warning= TRUE}
+
+# Models with explanatory variables. Grazed.
+#
+ungrazed.ergm1 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+                        + nodemain("height")
+                        + nodemain("crown.fruits")
+                        + nodemain("ground.fruits")
+                        + nodemain("neighbours")
+                        + nodemain("Vegetation cover")
+                        + nodemain("Bare cover")
+                        + nodemain("Shannon"))
+
+#explanation of transitivity https://www.sci.unich.it/~francesc/teaching/network/transitivity.html
+
+ungrazed.ergm2 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+                        + nodemain("height")
+                        + nodemain("crown.fruits")
+                        + nodemain("ground.fruits"))
+                     #   + nodemain("neighbours")
+                      #  + nodemain("Vegetation cover")
+                      #  + nodemain("Bare cover")
+                     #   + nodemain("Shannon"))
+
+ungrazed.ergm3 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+                     #   + nodemain("height")
+                    #    + nodemain("crown.fruits")
+                     #   + nodemain("ground.fruits")
+                        + nodemain("neighbours")
+                        + nodemain("Vegetation cover")
+                        + nodemain("Bare cover")
+                        + nodemain("Shannon"))
+ 
+
+ungrazed.ergm4 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+                     #   + nodemain("height")
+                        + nodemain("crown.fruits")
+                    #    + nodemain("ground.fruits")
+                        + nodemain("neighbours")
+                   #     + nodemain("Vegetation cover")
+                        + nodemain("Bare cover")
+                        + nodemain("Shannon"))
+
+
+ungrazed.ergm5 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+                        + nodemain("height")
+                        + nodemain("crown.fruits")
+                    #    + nodemain("ground.fruits")
+                     #   + nodemain("neighbours")
+                        + nodemain("Vegetation cover")
+                        + nodemain("Bare cover"))
+                    #    + nodemain("Shannon"))
+
+```
+
+
+```{r model tests ungrazed, echo=TRUE, message= TRUE, warning= TRUE}
+# Model tests
+# 
+set.seed(42)
+ungrazed.ergm.fit00 <- ergm(ungrazed.ergm00)
+ungrazed.ergm.fit02 <- ergm(ungrazed.ergm02)
+ungrazed.ergm.fit1 <- ergm(ungrazed.ergm1)    # Full model
+ungrazed.ergm.fit2 <- ergm(ungrazed.ergm2)    #with intrinsic variables
+ungrazed.ergm.fit3 <- ergm(ungrazed.ergm3)    #with extrinsic variables 
+ungrazed.ergm.fit4 <- ergm(ungrazed.ergm4)    
+ungrazed.ergm.fit5 <- ergm(ungrazed.ergm5)    
+
+# NOT RUN
+# mcmc.diagnostics(m80.ergm.fit0)
+# mcmc.diagnostics(m80.ergm.fit1)
+# mcmc.diagnostics(m80.ergm.fit2)
+# mcmc.diagnostics(m80.ergm.fit3)
+# mcmc.diagnostics(m80.ergm.fit11)
+# mcmc.diagnostics(m80.ergm.fit12)
+
+anova.ergm(ungrazed.ergm.fit00, test="Chi") #page 92 book
+anova.ergm(ungrazed.ergm.fit02, test="Chi")
+anova.ergm(ungrazed.ergm.fit1, test="Chi")
+anova.ergm(ungrazed.ergm.fit2, test="Chi")
+anova.ergm(ungrazed.ergm.fit3, test="Chi")
+anova.ergm(ungrazed.ergm.fit4, test="Chi")
+anova.ergm(ungrazed.ergm.fit5, test="Chi")
+
+anova.ergm(ungrazed.ergm.fit00, ungrazed.ergm.fit1, test="Chi")
+anova.ergm(ungrazed.ergm.fit02, ungrazed.ergm.fit1, test="Chi")
+anova.ergm(ungrazed.ergm.fit1, ungrazed.ergm.fit2, test="Chi")
+anova.ergm(ungrazed.ergm.fit1, ungrazed.ergm.fit3, test="Chi")
+anova.ergm(ungrazed.ergm.fit2, ungrazed.ergm.fit3, test="Chi")
+anova.ergm(ungrazed.ergm.fit2, ungrazed.ergm.fit4, test="Chi")
+anova.ergm(ungrazed.ergm.fit3, ungrazed.ergm.fit5, test="Chi")
+
+summary.ergm(ungrazed.ergm.fit00) 
+summary.ergm(ungrazed.ergm.fit02)
+summary.ergm(ungrazed.ergm.fit1) #interpretation of estimates page 94 book
+summary.ergm(ungrazed.ergm.fit2)
+summary.ergm(ungrazed.ergm.fit3)
+summary.ergm(ungrazed.ergm.fit4)
+summary.ergm(ungrazed.ergm.fit5)
+```
+
+```{r}
+## Compute table
+require(MuMIn)
+library(dplyr)
+
+tt<- round(BIC(ungrazed.ergm.fit00, ungrazed.ergm.fit02, ungrazed.ergm.fit1, ungrazed.ergm.fit2,
+               ungrazed.ergm.fit3, ungrazed.ergm.fit4, ungrazed.ergm.fit5), 10)
+ttt<- round(Weights(AICc(ungrazed.ergm.fit00, ungrazed.ergm.fit02, ungrazed.ergm.fit1, ungrazed.ergm.fit2,
+               ungrazed.ergm.fit3, ungrazed.ergm.fit4, ungrazed.ergm.fit5)), 10)
+model.summ<- arrange(data.frame("model"= row.names(tt), 
+                     tt, "AICw"= ttt), desc(AICw))
+model.summ
+
+```
+
+```{r}
+# Goodness of fit.
+# 
+gof.ungrazed.ergm02 <- gof(ungrazed.ergm.fit02)
+par(mfrow=c(1, 3))
+plot(gof.ungrazed.ergm02)
+
+gof.ungrazed.ergm1 <- gof(ungrazed.ergm.fit1)
+par(mfrow=c(1, 3))
+plot(gof.ungrazed.ergm1)
+
+gof.ungrazed.ergm2 <- gof(ungrazed.ergm.fit2)
+par(mfrow=c(1, 3))
+plot(gof.ungrazed.ergm2)
+
+gof.ungrazed.ergm3 <- gof(ungrazed.ergm.fit3)
+par(mfrow=c(1, 3))
+plot(gof.ungrazed.ergm3)
+
+gof.ungrazed.ergm4 <- gof(ungrazed.ergm.fit4)
+par(mfrow=c(1, 3))
+plot(gof.ungrazed.ergm4)
+
+gof.ungrazed.ergm5 <- gof(ungrazed.ergm.fit5)
+par(mfrow=c(1, 3))
+plot(gof.ungrazed.ergm5)
+
+```
