@@ -41,6 +41,9 @@ fruUG <- can [121:190, 60:69]
 fruUG <- fruUG [, -9]
 plantUG <- can [121:190, 4:21]
 
+#habitat variables 
+planth <- can [121:190, 24:30]
+
 ```
 
 ```{r}
