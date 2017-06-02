@@ -25,8 +25,10 @@ library(bipartite)
 # NETWORKS
 
 ```{r}
-main<- read.csv("../data/interaction_matrix.csv",header=T,sep=",",dec=".",na.strings="NA")
+main<- read.csv("../data/interaction_matrix.csv", header= T, sep= ",",
+                dec = ".", na.strings = "NA")
 str(main)
+
 ```
 
 
@@ -72,7 +74,7 @@ head(grazed); head(ungrazed); head(both)
  require(ggnetwork)
   
   # Bipartite network initialization, starting from an adjacency matrix.
-  # Matrix from dataframe.
+  # Adjacency matrix (wG and wUG) from dataframe (grazed and ungrazed).
  
  wG<-t(grazed[,2:13])
  colnames(wG)<- grazed[,1]
@@ -95,8 +97,9 @@ head(grazed); head(ungrazed); head(both)
       M.scaled <- x*log(M[, 3] + 1) / max(log(M[, 3] + 1))
       # Vector of edge weights.
       return(M.scaled)
-  }
-  
+ }
+
+   
   # Weighted bipartite networks
   # 
  # GRAZED
@@ -107,14 +110,18 @@ head(grazed); head(ungrazed); head(both)
                modes = c("Frug", "Trees"))
  
   # set colors for each mode
-  #col = c("actor" = "grey", "event" = "gold")
-  
- ggnet2(bipwG, node.size = 5,
+#col = c("actor" = "grey", "event" = "gold")
+
+degree<-c(deg,degsp)
+degree
+
+ggnet2(bipwG,size = 5 ,
         edge.size= edge.weights(wG, 5), edge.alpha= .25,
-         label= TRUE, label.size= 3,
+         label= T, label.size= 3,
          color= "mode", palette = "Set2",
          shape= "mode")
-  
+
+
  # UNGRAZED
  bipwUG= network(wUG,
                 matrix.type = "bipartite",
@@ -132,6 +139,8 @@ head(grazed); head(ungrazed); head(both)
  
 
 ```
+
+
 
 #Plot bipartite network for all trees 
 
@@ -193,11 +202,30 @@ library(bipartite)
 
 ```{r indices, echo= TRUE, message= TRUE, warning= TRUE}
 
-splevelG<-specieslevel(wG) # This gives you a lot of parameters
+splevelG<-specieslevel(wG)# This gives you a lot of parameters level="higher" or level="lower"
 # for each species and each Prosopis tree
 splevelG
 
-splevelUG<-specieslevel(wUG) # This gives you a lot of parameters
+spG<-specieslevel(wG,level="higher")
+spG
+
+sp<-specieslevel(wG,level="lower")
+sp
+
+
+deg<-spG[,2]
+deg
+
+degsp<-sp[,2]
+degsp
+
+degree<-c(deg,degsp)
+degree
+
+write.csv(splevelG,"splevelGl.csv")
+
+
+splevelUG<-specieslevel(wUG, level= "higher") # This gives you a lot of parameters
 # for each species and each Prosopis tree
 splevelUG
 
