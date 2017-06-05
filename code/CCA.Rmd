@@ -75,11 +75,35 @@ ccUG<-cc(fruUG, plantUG)
 ccUG
 
 ```
+```{r cca CCorA, echo= TRUE, message= TRUE, warning= TRUE}
+library(vegan)
+ccaG<-CCorA(plantG, fruG, stand.Y=T, stand.X=T, permutations = 999)
+ccaG
+eigenvals(ccaG)
+```
+```{r cca cancor, echo= TRUE, message= TRUE, warning= TRUE}
+library(candisc)
+cc <- cancor(fruG, plantG)
+cc
+#Wilks(cc)
+
+ccR <- cancor(fruUG, plantUG)
+ccR
+#Wilks(ccR)
+
+#plot(cc)
+#plot(ccR)
+
+
+```
+
+
+
 
 ```{r test Grazed sites, echo= TRUE, message= TRUE, warning= TRUE}
 
 #Grazed sites
-# tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model.
+# tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model. Is  a Test of Significance of the canonical correlation coefficient.
 #I adapted the code obtained from https://stats.idre.ucla.edu/r/dae/canonical-correlation-analysis/ (UCLA Statistical Consulting Group, UCLA= University of California in Los Ángeles)
 
 ev <- (1 - ccG$cor^2)
@@ -117,7 +141,7 @@ pv <- pf(f, d1, d2, lower.tail = F, log.p=F)
 ```{r test Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE}
 
 #Ungrazed sites
-# tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model.
+# tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model. Is  a Test of Significance of the canonical correlation coefficient.
 
 ev <- (1 - ccUG$cor^2)
 
