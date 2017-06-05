@@ -112,8 +112,6 @@ head(grazed); head(ungrazed); head(both)
   # set colors for each mode
 #col = c("actor" = "grey", "event" = "gold")
 
-degree<-c(deg,degsp)
-degree
 
 ggnet2(bipwG,size = 5 ,
         edge.size= edge.weights(wG, 5), edge.alpha= .25,
@@ -213,7 +211,7 @@ sp<-specieslevel(wG,level="lower")
 sp
 
 
-deg<-spG[,2]
+deg<-splevelG[,2]
 deg
 
 degsp<-sp[,2]

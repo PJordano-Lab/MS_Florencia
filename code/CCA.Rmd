@@ -19,6 +19,9 @@ require(CCA)
 can<- read.csv("../data/canonical.correlations.csv",header=T,sep=",",dec=".",na.strings="NA")
 str(can)
 
+#cans<- read.csv("../data/selected_trees.csv",header=T,sep=",",dec=".",na.strings="NA")
+#str(cans)
+
 ```
 
 
@@ -35,11 +38,22 @@ fruG <- can [1:120, 31:42]
 fruG <- fruG [, -10]
 plantG <- can [1:120, 4:21]
 
-
 #Ungrazed sites
 
 fruUG <- can [121:190, 31:40]
 plantUG <- can [121:190, 4:21]
+
+#To run CCA only considering visited trees 
+#Grazed sites
+
+#fruG <- cans [1:108, 31:42]
+#fruG <- fruG [, -10]
+#plantG <- cans [1:108, 4:21]
+
+#Ungrazed sites
+
+#fruUG <- cans [109:172, 31:40]
+#plantUG <- cans [109:172, 4:21]
 
 ```
 
@@ -50,6 +64,7 @@ ggpairs(fruG)
 ggpairs(plantG)
 
 ```
+
 
 ```{r correlations, echo= TRUE, message= TRUE, warning= TRUE}
 
@@ -64,9 +79,8 @@ matcor(fruUG, plantUG)
 ```{r corr coefficients, echo= TRUE, message= TRUE, warning= TRUE}
 
 #The function cc performs Canonical Correlation Analysis to highlight correlations between the two data sets
-
+# The canonical squared correlation coefficients represent the proportion of the total variance explained by each pair of canonical variables. 
 ##Grazed sites
-
 ccG<-cc(fruG, plantG)
 ccG
 
@@ -79,7 +93,7 @@ ccUG
 library(vegan)
 ccaG<-CCorA(plantG, fruG, stand.Y=T, stand.X=T, permutations = 999)
 ccaG
-eigenvals(ccaG)
+
 ```
 ```{r cca cancor, echo= TRUE, message= TRUE, warning= TRUE}
 library(candisc)
