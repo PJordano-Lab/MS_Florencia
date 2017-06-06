@@ -56,7 +56,7 @@ nG.edg<- as_edgelist(netG.g)
  # 
  mG_attr<-mod %>%  
            dplyr::filter(site=="grazed") %>% 
-           dplyr::select(c(1,4:23))
+           dplyr::select(c(1,4:24))
            
  
  # Create the attributes matrix
@@ -73,6 +73,7 @@ nG.edg<- as_edgelist(netG.g)
  V(netG.g)$litt.cov.x<-   mG_attr$litt.cov.x 
  V(netG.g)$litt.cov.sd<-   mG_attr$litt.cov.sd
  V(netG.g)$H.shannon<-   mG_attr$H.shannon
+ V(netG.g)$modules<-   mG_attr$modules
  V(netG.g)$x<-   mG_attr$x 
  V(netG.g)$y<-   mG_attr$y 
 
@@ -125,6 +126,12 @@ library(sand)
                                  v.attrs$Pros.neigh)
  network::set.vertex.attribute(grazed.s, "Vegetation cover",
                                  v.attrs$veg.cov.x)
+ #network::set.vertex.attribute(grazed.s, "x position",
+ #                                v.attrs$x)
+ #network::set.vertex.attribute(grazed.s, "y position",
+#                                 v.attrs$y)
+ network::set.vertex.attribute(grazed.s, "modules",
+                                 v.attrs$modules)
  
  # Specifying Random Bernouilli model
  my.ergm.bern <- formula(grazed.s ~ edges)
@@ -158,7 +165,10 @@ grazed.ergm1 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                         + nodemain("crown.fruits")
                         + nodemain("neighbours")
                         + nodemain("Prosopis.neighbours")
-                        + nodemain("Vegetation cover")) 
+                        + nodemain("Vegetation cover")
+                       # + nodemain("x position")
+                      #  + nodemain("y position")
+                        + nodemain("modules")) 
 
 #explanation of transitivity https://www.sci.unich.it/~francesc/teaching/network/transitivity.html
 
@@ -183,6 +193,35 @@ grazed.ergm4 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
 grazed.ergm5 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                         + nodemain("crown.fruits"))
 
+grazed.ergm6 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
+                        + nodemain("height"))
+
+grazed.ergm7 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
+                      #  + nodemain("height")
+                      #  + nodemain("crown.fruits")
+                        + nodemain("neighbours")
+                        + nodemain("Prosopis.neighbours"))
+                      #  + nodemain("Vegetation cover")) 
+
+#grazed.ergm8 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+                       # + nodemain("height")
+                      #  + nodemain("crown.fruits")
+                      #  + nodemain("neighbours")
+                      #  + nodemain("Prosopis.neighbours")
+                      #  + nodemain("Vegetation cover")
+                     #   + nodemain ("x position")
+                     #   + nodemain ("y position"))
+
+grazed.ergm9 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+                    #    + nodemain("height")
+                    #    + nodemain("crown.fruits")
+                    #    + nodemain("neighbours")
+                    #    + nodemain("Prosopis.neighbours")
+                    #    + nodemain("Vegetation cover")
+                    #    + nodemain("x position")
+                    #    + nodemain("y position")
+                        + nodemain("modules")) 
+                      
 ```
 
 
@@ -190,13 +229,17 @@ grazed.ergm5 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
 # Model tests
 # 
 set.seed(42)
-grazed.ergm.fit00 <- ergm(grazed.ergm00)
+grazed.ergm.fit00 <- ergm(grazed.ergm00)  #Bernoulli model
 grazed.ergm.fit02 <- ergm(grazed.ergm02)
 grazed.ergm.fit1 <- ergm(grazed.ergm1)    # Full model
 grazed.ergm.fit2 <- ergm(grazed.ergm2)    #with intrinsic variables
 grazed.ergm.fit3 <- ergm(grazed.ergm3)    #with extrinsic variables 
 grazed.ergm.fit4 <- ergm(grazed.ergm4)    #only with vegetation cover
-grazed.ergm.fit5 <- ergm(grazed.ergm5)    #only with crown fruits
+grazed.ergm.fit5 <- ergm(grazed.ergm5)    #only with fecundity variable (crown fruits)
+grazed.ergm.fit6 <- ergm(grazed.ergm6)    #only with size variable (height)
+grazed.ergm.fit7 <- ergm(grazed.ergm7)    #only with neighborhood variables (inter and intraspecific neighborhood)
+#grazed.ergm.fit8 <- ergm(grazed.ergm8)    #only with position variables (x and y coordinates)
+grazed.ergm.fit9 <- ergm(grazed.ergm9)    #only with modules information 
 
 # NOT RUN
 # mcmc.diagnostics(m80.ergm.fit0)
@@ -213,14 +256,24 @@ anova.ergm(grazed.ergm.fit2, test="Chi")
 anova.ergm(grazed.ergm.fit3, test="Chi")
 anova.ergm(grazed.ergm.fit4, test="Chi")
 anova.ergm(grazed.ergm.fit5, test="Chi")
+anova.ergm(grazed.ergm.fit6, test="Chi")
+anova.ergm(grazed.ergm.fit7, test="Chi")
+#anova.ergm(grazed.ergm.fit8, test="Chi")
+anova.ergm(grazed.ergm.fit9, test="Chi")
+
+
 
 anova.ergm(grazed.ergm.fit00, grazed.ergm.fit1, test="Chi")
 anova.ergm(grazed.ergm.fit02, grazed.ergm.fit1, test="Chi")
 anova.ergm(grazed.ergm.fit1, grazed.ergm.fit2, test="Chi")
 anova.ergm(grazed.ergm.fit1, grazed.ergm.fit3, test="Chi")
+#anova.ergm(grazed.ergm.fit1, grazed.ergm.fit8, test="Chi")
+anova.ergm(grazed.ergm.fit1, grazed.ergm.fit9, test="Chi")
 anova.ergm(grazed.ergm.fit2, grazed.ergm.fit3, test="Chi")
 anova.ergm(grazed.ergm.fit2, grazed.ergm.fit5, test="Chi")
+anova.ergm(grazed.ergm.fit2, grazed.ergm.fit6, test="Chi")
 anova.ergm(grazed.ergm.fit3, grazed.ergm.fit4, test="Chi")
+anova.ergm(grazed.ergm.fit3, grazed.ergm.fit7, test="Chi")
 
 summary.ergm(grazed.ergm.fit00) 
 summary.ergm(grazed.ergm.fit02)
@@ -229,6 +282,12 @@ summary.ergm(grazed.ergm.fit2)
 summary.ergm(grazed.ergm.fit3)
 summary.ergm(grazed.ergm.fit4)
 summary.ergm(grazed.ergm.fit5)
+summary.ergm(grazed.ergm.fit6)
+summary.ergm(grazed.ergm.fit7)
+#summary.ergm(grazed.ergm.fit8)
+summary.ergm(grazed.ergm.fit9)
+
+
 ```
 
 
@@ -238,9 +297,11 @@ require(MuMIn)
 library(dplyr)
 
 tt<- round(BIC(grazed.ergm.fit00, grazed.ergm.fit02, grazed.ergm.fit1, grazed.ergm.fit2,
-               grazed.ergm.fit3, grazed.ergm.fit4, grazed.ergm.fit5), 10)
+               grazed.ergm.fit3, grazed.ergm.fit4, grazed.ergm.fit5,grazed.ergm.fit6, grazed.ergm.fit7,            grazed.ergm.fit9), 10)
+
 ttt<- round(Weights(AICc(grazed.ergm.fit00, grazed.ergm.fit02, grazed.ergm.fit1, grazed.ergm.fit2,
-               grazed.ergm.fit3, grazed.ergm.fit4, grazed.ergm.fit5)), 10)
+               grazed.ergm.fit3, grazed.ergm.fit4, grazed.ergm.fit5, grazed.ergm.fit6, grazed.ergm.fit7,            grazed.ergm.fit9)), 10)
+
 model.summ<- arrange(data.frame("model"= row.names(tt), 
                      tt, "AICw"= ttt), desc(AICw))
 model.summ
@@ -273,6 +334,22 @@ plot(gof.grazed.ergm4)
 gof.grazed.ergm5 <- gof(grazed.ergm.fit5)
 par(mfrow=c(1, 3))
 plot(gof.grazed.ergm5)
+
+gof.grazed.ergm6 <- gof(grazed.ergm.fit6)
+par(mfrow=c(1, 3))
+plot(gof.grazed.ergm6)
+
+gof.grazed.ergm7 <- gof(grazed.ergm.fit7)
+par(mfrow=c(1, 3))
+plot(gof.grazed.ergm7)
+
+#gof.grazed.ergm8 <- gof(grazed.ergm.fit8)
+#par(mfrow=c(1, 3))
+#plot(gof.grazed.ergm8)
+
+gof.grazed.ergm9 <- gof(grazed.ergm.fit9)
+par(mfrow=c(1, 3))
+plot(gof.grazed.ergm9)
 
 ```
 
@@ -323,7 +400,7 @@ nUG.edg<- as_edgelist(netUG.g)
  # 
  mUG_attr<-mod %>%  
            dplyr::filter(site=="ungrazed") %>% 
-           dplyr::select(c(1,4:23))
+           dplyr::select(c(1,4:24))
            
  
  # Create the attributes matrix
@@ -342,6 +419,7 @@ nUG.edg<- as_edgelist(netUG.g)
  V(netUG.g)$H.shannon<-   mUG_attr$H.shannon
  V(netUG.g)$x<-   mUG_attr$x 
  V(netUG.g)$y<-   mUG_attr$y 
+ V(netUG.g)$modules<-   mUG_attr$modules
 
 ```
 
@@ -355,7 +433,7 @@ nUG.edg<- as_edgelist(netUG.g)
  # 
 library(sand)
  AA <- get.adjacency(netUG.g)
- v.attrs <- get.data.frame(netUG.g, what="vertices")[121:190,]
+ v.attrs <- get.data.frame(netUG.g, what="vertices")[1:70,]
  
  #Then, creating the analogous network object for ergm
  library(ergm) # Will load package 'network' as well.
@@ -375,6 +453,8 @@ library(sand)
                                  v.attrs$bare.cov.x)
  network::set.vertex.attribute(ungrazed.s, "Shannon",
                                  v.attrs$H.shannon)
+ network::set.vertex.attribute(ungrazed.s, "modules",
+                                 v.attrs$modules)
  # Specifying Random Bernouilli model
  my.ergm.bern <- formula(ungrazed.s ~ edges)
  my.ergm.bern
@@ -409,7 +489,8 @@ ungrazed.ergm1 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                         + nodemain("neighbours")
                         + nodemain("Vegetation cover")
                         + nodemain("Bare cover")
-                        + nodemain("Shannon"))
+                        + nodemain("Shannon")
+                        + nodemain("modules"))
 
 #explanation of transitivity https://www.sci.unich.it/~francesc/teaching/network/transitivity.html
 
@@ -435,21 +516,50 @@ ungrazed.ergm3 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE)
 ungrazed.ergm4 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
                      #   + nodemain("height")
                         + nodemain("crown.fruits")
-                    #    + nodemain("ground.fruits")
-                        + nodemain("neighbours")
+                        + nodemain("ground.fruits"))
+                     #   + nodemain("neighbours")
                    #     + nodemain("Vegetation cover")
-                        + nodemain("Bare cover")
-                        + nodemain("Shannon"))
+                     #   + nodemain("Bare cover")
+                      #  + nodemain("Shannon"))
 
 
 ungrazed.ergm5 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
-                        + nodemain("height")
-                        + nodemain("crown.fruits")
+                        + nodemain("height"))
+                     #   + nodemain("crown.fruits")
                     #    + nodemain("ground.fruits")
                      #   + nodemain("neighbours")
-                        + nodemain("Vegetation cover")
-                        + nodemain("Bare cover"))
+                    #    + nodemain("Vegetation cover")
+                     #   + nodemain("Bare cover"))
                     #    + nodemain("Shannon"))
+
+ungrazed.ergm6 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+                    #    + nodemain("height")
+                     #   + nodemain("crown.fruits")
+                      #  + nodemain("ground.fruits")
+                       # + nodemain("neighbours")
+                        + nodemain("Vegetation cover")
+                        + nodemain("Bare cover")
+                        + nodemain("Shannon"))
+                      #  + nodemain("modules"))
+ungrazed.ergm7 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+                     #  + nodemain("height")
+                    #    + nodemain("crown.fruits")
+                     #   + nodemain("ground.fruits")
+                        + nodemain("neighbours"))
+                    #    + nodemain("Vegetation cover")
+                    #    + nodemain("Bare cover")
+                    #    + nodemain("Shannon")
+                    #    + nodemain("modules"))
+
+ungrazed.ergm8 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+                   #     + nodemain("height")
+                    #    + nodemain("crown.fruits")
+                     #   + nodemain("ground.fruits")
+                      #  + nodemain("neighbours")
+                       # + nodemain("Vegetation cover")
+                      #  + nodemain("Bare cover")
+                      #  + nodemain("Shannon")
+                        + nodemain("modules"))
 
 ```
 
@@ -463,8 +573,12 @@ ungrazed.ergm.fit02 <- ergm(ungrazed.ergm02)
 ungrazed.ergm.fit1 <- ergm(ungrazed.ergm1)    # Full model
 ungrazed.ergm.fit2 <- ergm(ungrazed.ergm2)    #with intrinsic variables
 ungrazed.ergm.fit3 <- ergm(ungrazed.ergm3)    #with extrinsic variables 
-ungrazed.ergm.fit4 <- ergm(ungrazed.ergm4)    
-ungrazed.ergm.fit5 <- ergm(ungrazed.ergm5)    
+ungrazed.ergm.fit4 <- ergm(ungrazed.ergm4)    # fecundity variables
+ungrazed.ergm.fit5 <- ergm(ungrazed.ergm5)    #tree size
+ungrazed.ergm.fit6 <- ergm(ungrazed.ergm6)    #with cover variables  
+ungrazed.ergm.fit7 <- ergm(ungrazed.ergm7)    #neighborhood
+ungrazed.ergm.fit8 <- ergm(ungrazed.ergm8)    #modules
+
 
 # NOT RUN
 # mcmc.diagnostics(m80.ergm.fit0)
@@ -481,14 +595,22 @@ anova.ergm(ungrazed.ergm.fit2, test="Chi")
 anova.ergm(ungrazed.ergm.fit3, test="Chi")
 anova.ergm(ungrazed.ergm.fit4, test="Chi")
 anova.ergm(ungrazed.ergm.fit5, test="Chi")
+anova.ergm(ungrazed.ergm.fit6, test="Chi")
+anova.ergm(ungrazed.ergm.fit7, test="Chi")
+anova.ergm(ungrazed.ergm.fit8, test="Chi")
 
 anova.ergm(ungrazed.ergm.fit00, ungrazed.ergm.fit1, test="Chi")
 anova.ergm(ungrazed.ergm.fit02, ungrazed.ergm.fit1, test="Chi")
 anova.ergm(ungrazed.ergm.fit1, ungrazed.ergm.fit2, test="Chi")
 anova.ergm(ungrazed.ergm.fit1, ungrazed.ergm.fit3, test="Chi")
+anova.ergm(ungrazed.ergm.fit1, ungrazed.ergm.fit4, test="Chi")
+anova.ergm(ungrazed.ergm.fit1, ungrazed.ergm.fit5, test="Chi")
+anova.ergm(ungrazed.ergm.fit1, ungrazed.ergm.fit8, test="Chi")
 anova.ergm(ungrazed.ergm.fit2, ungrazed.ergm.fit3, test="Chi")
 anova.ergm(ungrazed.ergm.fit2, ungrazed.ergm.fit4, test="Chi")
-anova.ergm(ungrazed.ergm.fit3, ungrazed.ergm.fit5, test="Chi")
+anova.ergm(ungrazed.ergm.fit2, ungrazed.ergm.fit5, test="Chi")
+anova.ergm(ungrazed.ergm.fit3, ungrazed.ergm.fit6, test="Chi")
+anova.ergm(ungrazed.ergm.fit3, ungrazed.ergm.fit7, test="Chi")
 
 summary.ergm(ungrazed.ergm.fit00) 
 summary.ergm(ungrazed.ergm.fit02)
@@ -497,6 +619,9 @@ summary.ergm(ungrazed.ergm.fit2)
 summary.ergm(ungrazed.ergm.fit3)
 summary.ergm(ungrazed.ergm.fit4)
 summary.ergm(ungrazed.ergm.fit5)
+summary.ergm(ungrazed.ergm.fit6)
+summary.ergm(ungrazed.ergm.fit7)
+summary.ergm(ungrazed.ergm.fit8)
 ```
 
 ```{r}
@@ -505,9 +630,11 @@ require(MuMIn)
 library(dplyr)
 
 tt<- round(BIC(ungrazed.ergm.fit00, ungrazed.ergm.fit02, ungrazed.ergm.fit1, ungrazed.ergm.fit2,
-               ungrazed.ergm.fit3, ungrazed.ergm.fit4, ungrazed.ergm.fit5), 10)
+               ungrazed.ergm.fit3, ungrazed.ergm.fit4, ungrazed.ergm.fit5,ungrazed.ergm.fit6, ungrazed.ergm.fit7, ungrazed.ergm.fit8), 10)
+
 ttt<- round(Weights(AICc(ungrazed.ergm.fit00, ungrazed.ergm.fit02, ungrazed.ergm.fit1, ungrazed.ergm.fit2,
-               ungrazed.ergm.fit3, ungrazed.ergm.fit4, ungrazed.ergm.fit5)), 10)
+               ungrazed.ergm.fit3, ungrazed.ergm.fit4, ungrazed.ergm.fit5,ungrazed.ergm.fit6, ungrazed.ergm.fit7, ungrazed.ergm.fit8)), 10)
+
 model.summ<- arrange(data.frame("model"= row.names(tt), 
                      tt, "AICw"= ttt), desc(AICw))
 model.summ
@@ -540,5 +667,18 @@ plot(gof.ungrazed.ergm4)
 gof.ungrazed.ergm5 <- gof(ungrazed.ergm.fit5)
 par(mfrow=c(1, 3))
 plot(gof.ungrazed.ergm5)
+
+gof.ungrazed.ergm6 <- gof(ungrazed.ergm.fit6)
+par(mfrow=c(1, 3))
+plot(gof.ungrazed.ergm6)
+
+gof.ungrazed.ergm7 <- gof(ungrazed.ergm.fit7)
+par(mfrow=c(1, 3))
+plot(gof.ungrazed.ergm7)
+
+gof.ungrazed.ergm8 <- gof(ungrazed.ergm.fit8)
+par(mfrow=c(1, 3))
+plot(gof.ungrazed.ergm8)
+
 
 ```
