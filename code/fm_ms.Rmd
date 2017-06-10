@@ -113,7 +113,7 @@ head(grazed); head(ungrazed); head(both)
 #col = c("actor" = "grey", "event" = "gold")
 
 
-ggnet2(bipwG,size = 5 ,
+ggnet2(bipwG, size = 5 ,
         edge.size= edge.weights(wG, 5), edge.alpha= .25,
          label= T, label.size= 3,
          color= "mode", palette = "Set2",
