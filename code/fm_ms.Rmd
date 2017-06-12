@@ -210,16 +210,6 @@ spG
 sp<-specieslevel(wG,level="lower")
 sp
 
-
-deg<-splevelG[,2]
-deg
-
-degsp<-sp[,2]
-degsp
-
-degree<-c(deg,degsp)
-degree
-
 write.csv(splevelG,"splevelGl.csv")
 
 

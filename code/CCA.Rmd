@@ -16,16 +16,16 @@ require(CCA)
 
 ```{r}
 
-can<- read.csv("../data/canonical.correlations.csv",header=T,sep=",",dec=".",na.strings="NA")
-str(can)
+#can<- read.csv("../data/canonical.correlations.csv",header=T,sep=",",dec=".",na.strings="NA")
+#str(can)
 
-#cans<- read.csv("../data/selected_trees.csv",header=T,sep=",",dec=".",na.strings="NA")
-#str(cans)
+cans<- read.csv("../data/selected_trees.csv",header=T,sep=",",dec=".",na.strings="NA")
+str(cans)
 
 ```
 
 
-```{r variables, echo= TRUE, message= TRUE, warning= TRUE}
+```{r microhabitat variables, echo= TRUE, message= TRUE, warning= TRUE}
 
 #1 to 120 grazed sites, 121 to 190 ungrazed sites
 #to grazed sites eliminate ctenomys fru <- can [1:120, 59:70] fru <- fru[,-10]
@@ -34,26 +34,26 @@ str(can)
 
 #Grazed sites
 
-fruG <- can [1:120, 31:42]
-fruG <- fruG [, -10]
-plantG <- can [1:120, 4:21]
+#fruG <- can [1:120, 31:42]
+#fruG <- fruG [, -10]
+#plantG <- can [1:120, 4:21]
 
 #Ungrazed sites
 
-fruUG <- can [121:190, 31:40]
-plantUG <- can [121:190, 4:21]
+#fruUG <- can [121:190, 31:40]
+#plantUG <- can [121:190, 4:21]
 
 #To run CCA only considering visited trees 
 #Grazed sites
 
-#fruG <- cans [1:108, 31:42]
-#fruG <- fruG [, -10]
-#plantG <- cans [1:108, 4:21]
+fruG <- cans [1:108, 31:42]
+fruG <- fruG [, -10]
+plantG <- cans [1:108, 4:21]
 
 #Ungrazed sites
 
-#fruUG <- cans [109:172, 31:40]
-#plantUG <- cans [109:172, 4:21]
+fruUG <- cans [109:172, 31:40]
+plantUG <- cans [109:172, 4:21]
 
 ```
 
@@ -69,6 +69,7 @@ ggpairs(plantG)
 ```{r correlations, echo= TRUE, message= TRUE, warning= TRUE}
 
 #we’ll look at the correlations within and between the two sets of variables using the matcor function from the CCA package.
+#http://www.statisticssolutions.com/table-of-critical-values-pearson-correlation/
 
 matcor(fruG, plantG)
 
@@ -232,4 +233,78 @@ plt.cc (ccUG, d1 = 1, d2 = 2, int = 1, type = "v", ind.names = NULL,
 var.label = TRUE, Xnames = NULL, Ynames = NULL)
 
 ```
+```{r mesohabitat variables, echo= TRUE, message= TRUE, warning= TRUE}
 
+#1 to 120 grazed sites, 121 to 190 ungrazed sites
+#to grazed sites eliminate ctenomys fru <- can [1:120, 59:70] fru <- fru[,-10]
+##to ungrazed sites eliminate ctenomys (when using the total effect) fru <- can [121:190, 60:69], fru <- fru[,-9]
+#vistis 31:42; fruits consumed 43:54; total effect 59:70
+
+
+#To run CCA only considering visited trees 
+#Grazed sites
+
+#fruGh <- cans [1:108, 31:42]
+#fruGh <- fruGh [, -10]
+plantGh <- cans [1:108, 24:30]
+
+#Ungrazed sites
+
+#fruUGh <- cans [109:172, 31:40]
+plantUGh <- cans [109:172, 24:30]
+
+```
+
+```{r mesohabitat correlations, echo= TRUE, message= TRUE, warning= TRUE}
+
+#we’ll look at the correlations within and between the two sets of variables using the matcor function from the CCA package.
+
+matcor(fruG, plantGh)
+
+matcor(fruUG, plantUGh)
+```
+
+
+```{r mesohabitat corr coefficients, echo= TRUE, message= TRUE, warning= TRUE}
+
+#The function cc performs Canonical Correlation Analysis to highlight correlations between the two data sets
+# The canonical squared correlation coefficients represent the proportion of the total variance explained by each pair of canonical variables. 
+##Grazed sites
+cc(fruG,plantGh)
+ccGh
+
+##Ungrazed sites
+ccUGh<-cc(fruUG, plantUGh)
+ccUGh
+
+```
+
+```{r mesohabitat cca cancor, echo= TRUE, message= TRUE, warning= TRUE}
+library(candisc)
+cch <- cancor(fruGh, plantGh)
+cch
+#Wilks(cc)
+
+ccRh <- cancor(fruUGh, plantUGh)
+ccRh
+#Wilks(ccR)
+
+#plot(cc)
+#plot(ccR)
+
+```
+
+```{r biplot mesohabitat Grazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 14, size= 0.01}
+
+plt.cc (ccGh, d1 = 1, d2= 2, int = 1, type = "v", ind.names = NULL,
+var.label = TRUE, Xnames = NULL, Ynames = NULL)
+
+
+```
+
+```{r biplot mesohabitat Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 14, size= 0.01}
+
+plt.cc (ccUGh, d1 = 1, d2 = 2, int = 1, type = "v", ind.names = NULL,
+var.label = TRUE, Xnames = NULL, Ynames = NULL)
+
+```
