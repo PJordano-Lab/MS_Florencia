@@ -474,7 +474,7 @@ model.summ
 
 ```
 
-```{r}
+```{r, include= FALSE}
 # Goodness of fit.
 # Note that a p-value closer to one is better: This is the difference between the observed networks and simulations from the model.
 #The black lines are the observed distributions and the boxplots reflect networks simulated from the model.
@@ -530,31 +530,6 @@ plot(gof.grazed.ergm11)
 
 ```
 
-
-```{r}
-# Some relationships of node parameters with predictors.
-# 
-
-tt<- data.frame("height"= grazed.s %v% 'height', 
-                "ttdegree"= sna::degree(grazed.s, gmode='graph'),
-                "tteigcentr"= sna::evcent(grazed.s, rescale = F, gmode='graph'),
-                "ttclos"= sna::evcent(grazed.s, rescale = T, gmode='graph'))
-p1<- ggplot(tt, aes(log(height), log(ttdegree))) + 
-        geom_point(size=3) + geom_smooth(span = 1.5)
-
-p2<- ggplot(tt, aes(log('Vegetation cover'), log(tteigcentr))) + 
-        geom_point(size=3) + geom_smooth(span = 1.5)
-
-p3<- ggplot(tt, aes(log('Vegetation cover'), log(ttclos))) + 
-        geom_point(size=3) + geom_smooth(span = 1.5)
-
-p1
-p2
-p3
-
-multiplot(p1, p2, p3, cols=3)
-
-```
 
 #UNGRAZED LAND USES
 
@@ -890,7 +865,7 @@ model.summ
 
 ```
 
-```{r}
+```{r, include= FALSE}
 # Goodness of fit.
 # 
 gof.ungrazed.ergm02 <- gof(ungrazed.ergm.fit02)
