@@ -1,7 +1,7 @@
 ---
 title: "CCA"
 author: "M. Florencia Miguel"
-date: "22 de mayo de 2017"
+date: "14 de junio de 2017"
 output: html_document
 ---
 
@@ -29,7 +29,7 @@ str(cans)
 
 #1 to 120 grazed sites, 121 to 190 ungrazed sites
 #to grazed sites eliminate ctenomys fru <- can [1:120, 59:70] fru <- fru[,-10]
-##to ungrazed sites eliminate ctenomys (when using the total effect) fru <- can [121:190, 60:69], fru <- fru[,-9]
+#to ungrazed sites do not consider data of Bos taurus and Equus caballus 
 #vistis 31:42; fruits consumed 43:54; total effect 59:70
 
 #Grazed sites
@@ -47,21 +47,13 @@ str(cans)
 #Grazed sites
 
 fruG <- cans [1:108, 31:42]
-fruG <- fruG [, -10]
+fruG <- fruG [, -10] #I do not include data of Ctenomys mendocinus in grazed sites, because it did not interact with trees
 plantG <- cans [1:108, 4:21]
 
 #Ungrazed sites
 
-fruUG <- cans [109:172, 31:40]
+fruUG <- cans [109:172, 31:40] #I do not include in analysis data of Bos taurus and Equus caballus for ungrazed land uses
 plantUG <- cans [109:172, 4:21]
-
-```
-
-```{r}
-
-ggpairs(fruG)
-
-ggpairs(plantG)
 
 ```
 
@@ -90,13 +82,8 @@ ccUG<-cc(fruUG, plantUG)
 ccUG
 
 ```
-```{r cca CCorA, echo= TRUE, message= TRUE, warning= TRUE}
-library(vegan)
-ccaG<-CCorA(plantG, fruG, stand.Y=T, stand.X=T, permutations = 999)
-ccaG
 
-```
-```{r cca cancor, echo= TRUE, message= TRUE, warning= TRUE}
+```{r cca cancor, echo= TRUE, message= FALSE, warning= TRUE}
 library(candisc)
 cc <- cancor(fruG, plantG)
 cc
@@ -112,10 +99,7 @@ ccR
 
 ```
 
-
-
-
-```{r test Grazed sites, echo= TRUE, message= TRUE, warning= TRUE}
+```{r WilksL test Grazed sites, echo= TRUE, message= TRUE, warning= TRUE}
 
 #Grazed sites
 # tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model. Is  a Test of Significance of the canonical correlation coefficient.
@@ -153,7 +137,7 @@ pv <- pf(f, d1, d2, lower.tail = F, log.p=F)
 
 
 
-```{r test Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE}
+```{r WilksL test Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE}
 
 #Ungrazed sites
 # tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model. Is  a Test of Significance of the canonical correlation coefficient.
@@ -219,7 +203,7 @@ s2 %*% ccUG$ycoef
 
 ```
 
-```{r biplot Grazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 14, size= 0.01}
+```{r biplot Grazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width=11}
 
 plt.cc (ccG, d1 = 1, d2= 2, int = 1, type = "v", ind.names = NULL,
 var.label = TRUE, Xnames = NULL, Ynames = NULL)
@@ -227,12 +211,14 @@ var.label = TRUE, Xnames = NULL, Ynames = NULL)
 
 ```
 
-```{r biplot Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 14, size= 0.01}
+```{r biplot Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 11}
 
 plt.cc (ccUG, d1 = 1, d2 = 2, int = 1, type = "v", ind.names = NULL,
 var.label = TRUE, Xnames = NULL, Ynames = NULL)
 
 ```
+
+
 ```{r mesohabitat variables, echo= TRUE, message= TRUE, warning= TRUE}
 
 #1 to 120 grazed sites, 121 to 190 ungrazed sites
@@ -247,11 +233,13 @@ var.label = TRUE, Xnames = NULL, Ynames = NULL)
 #fruGh <- cans [1:108, 31:42]
 #fruGh <- fruGh [, -10]
 plantGh <- cans [1:108, 24:30]
+plantGh <- plantGh [, -2]
 
 #Ungrazed sites
 
 #fruUGh <- cans [109:172, 31:40]
 plantUGh <- cans [109:172, 24:30]
+plantUGh <- plantUGh [, -2]
 
 ```
 
@@ -270,22 +258,22 @@ matcor(fruUG, plantUGh)
 #The function cc performs Canonical Correlation Analysis to highlight correlations between the two data sets
 # The canonical squared correlation coefficients represent the proportion of the total variance explained by each pair of canonical variables. 
 ##Grazed sites
-cc(fruG,plantGh)
+ccGh<-cc(fruG,plantGh)
 ccGh
 
 ##Ungrazed sites
-ccUGh<-cc(fruUG, plantUGh)
+ccUGh<-cc(fruUG,plantUGh)
 ccUGh
 
 ```
 
 ```{r mesohabitat cca cancor, echo= TRUE, message= TRUE, warning= TRUE}
 library(candisc)
-cch <- cancor(fruGh, plantGh)
+cch <- cancor(fruG,plantGh)
 cch
 #Wilks(cc)
 
-ccRh <- cancor(fruUGh, plantUGh)
+ccRh <- cancor(fruUG, plantUGh)
 ccRh
 #Wilks(ccR)
 
@@ -294,7 +282,77 @@ ccRh
 
 ```
 
-```{r biplot mesohabitat Grazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 14, size= 0.01}
+```{r mesohabitat WilksL test Grazed sites, echo= TRUE, message= TRUE, warning= TRUE}
+
+#Grazed sites
+# tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model. Is  a Test of Significance of the canonical correlation coefficient.
+#I adapted the code obtained from https://stats.idre.ucla.edu/r/dae/canonical-correlation-analysis/ (UCLA Statistical Consulting Group, UCLA= University of California in Los Ángeles)
+
+ev <- (1 - ccGh$cor^2)
+
+n <- dim(fruG)[1]
+p <- length(fruG)
+q <- length(plantGh)
+k <- min(p, q)
+m <- n - 3/2 - (p + q)/2
+
+w <- rev(cumprod(rev(ev)))
+
+# initialize
+d1 <- d2 <- f <- vector("numeric", k)
+
+for (i in 1:k) {
+    s <- sqrt((p^2 * q^2 - 4)/(p^2 + q^2 - 5))
+    si <- 1/s
+    d1[i] <- p * q
+    d2[i] <- m * s - p * q/2 + 1
+    r <- (1 - w[i]^si)/w[i]^si
+    f[i] <- r * d2[i]/d1[i]
+    p <- p - 1
+    q <- q - 1
+}
+
+pv <- pf(f, d1, d2, lower.tail = F, log.p=F)
+(dmat <- cbind(WilksL = w, F = f, df1 = d1, df2 = d2, p = pv))
+
+```
+
+```{r mesohabitat WilksL test Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE}
+
+#Grazed sites
+# tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model. Is  a Test of Significance of the canonical correlation coefficient.
+#I adapted the code obtained from https://stats.idre.ucla.edu/r/dae/canonical-correlation-analysis/ (UCLA Statistical Consulting Group, UCLA= University of California in Los Ángeles)
+
+ev <- (1 - ccUGh$cor^2)
+
+n <- dim(fruUG)[1]
+p <- length(fruUG)
+q <- length(plantUGh)
+k <- min(p, q)
+m <- n - 3/2 - (p + q)/2
+
+w <- rev(cumprod(rev(ev)))
+
+# initialize
+d1 <- d2 <- f <- vector("numeric", k)
+
+for (i in 1:k) {
+    s <- sqrt((p^2 * q^2 - 4)/(p^2 + q^2 - 5))
+    si <- 1/s
+    d1[i] <- p * q
+    d2[i] <- m * s - p * q/2 + 1
+    r <- (1 - w[i]^si)/w[i]^si
+    f[i] <- r * d2[i]/d1[i]
+    p <- p - 1
+    q <- q - 1
+}
+
+pv <- pf(f, d1, d2, lower.tail = F, log.p=F)
+(dmat <- cbind(WilksL = w, F = f, df1 = d1, df2 = d2, p = pv))
+
+```
+
+```{r biplot mesohabitat Grazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 11}
 
 plt.cc (ccGh, d1 = 1, d2= 2, int = 1, type = "v", ind.names = NULL,
 var.label = TRUE, Xnames = NULL, Ynames = NULL)
@@ -302,7 +360,7 @@ var.label = TRUE, Xnames = NULL, Ynames = NULL)
 
 ```
 
-```{r biplot mesohabitat Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 14, size= 0.01}
+```{r biplot mesohabitat Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 11}
 
 plt.cc (ccUGh, d1 = 1, d2 = 2, int = 1, type = "v", ind.names = NULL,
 var.label = TRUE, Xnames = NULL, Ynames = NULL)
