@@ -1,7 +1,7 @@
 ---
 title: "Models"
 author: "M. Florencia Miguel"
-date: "25 de mayo de 2017"
+date: "14 de junio de 2017"
 output:
   html_document: default
   pdf_document: default
@@ -37,7 +37,7 @@ mod<- read.csv("../data/canonical.correlations.csv",header=T,sep=",",dec=".",na.
 str(mod)
 
 ```
-```{r spatial autocorrelation, echo= TRUE, message= TRUE, warning= TRUE}
+```{r spatial autocorrelation, echo= TRUE, message= FALSE, warning= TRUE}
 library(nlme)
 
 #Pinheiro, J.C., and Bates, D.M. (2000) "Mixed-Effects Models in S and S-PLUS", Springer.
@@ -53,12 +53,7 @@ fm2.lme
 summary(fm2.lme)
 
 anova(fm1.lme, fm2.lme)
-# Model df      AIC      BIC    logLik   Test L.Ratio p-value
-#fm1.lme     1  4 2396.599 2409.370 -1194.299                       
-#fm2.lme     2  5 2398.599 2414.563 -1194.299 1 vs 2       0       1
 
-#plot(fm2.lme)
-#plot(fm1.lme)
 ```
 
 ```{r interaction correlations,echo= TRUE, message= TRUE, warning= TRUE }
@@ -68,14 +63,14 @@ anova(fm1.lme, fm2.lme)
 
 x <- mod[,60:71]
 
-cor(x, use="complete.obs", method="kendall") 
+cor(x, use="complete.obs", method="pearson") 
 
 ```
 
 
 #GRAZED LAND USES
 
-```{r data.grazed.build, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 9}
+```{r data.grazed.build, echo= TRUE, message= TRUE, warning= FALSE, fig.width= 9}
  
 #Add the node attributes from tree traits
 #vistis 31:42; fruits consumed 43:54; total effect 60:71
@@ -168,27 +163,25 @@ library(sand)
  network::set.vertex.attribute(grazed.s, "low.site",
                                  v.attrs$low.site)
  
- # Specifying Random Bernouilli model
- my.ergm.bern <- formula(grazed.s ~ edges)
- my.ergm.bern
- grazed.s ~ edges
- summary.statistics(my.ergm.bern) #edges 995
+
  
  # Models with no explanatory variables
+ 
  # http://michaellevy.name/blog/ERGM-tutorial/
  
+ #explanation of transitivity https://www.sci.unich.it/~francesc/teaching/network/transitivity.html
+ 
+ #geometrically-weighted edgewise shared partners (gwesp) term. It takes a parameter, alfa that controls how much to discount 2nd, 3rd, etc. shared partners. The closer alfa is to zero, the more dramatic the discounting applied to subsequent shared partners. Shows some effects of transitivity.
+ #geometrically weighted degree (gwdegree) estimates the change in tie likelihood given the degree of the nodes involved, but with marginally decreasing weighting as degree increases.
+
  grazed.ergm00 <- formula(grazed.s ~ edges)          # Bernoulli, edges is the number of edges in the graph
  
  grazed.ergm01 <- formula(grazed.s ~ edges + kstar(2)   # kstar and triangle (ej How does the likelihood of a friendship change if two people already have a friend in common?)
                              + kstar(3) + triangle)
  
-#geometrically-weighted edgewise shared partners (gwesp) term. It takes a parameter, alfa that controls how much to discount 2nd, 3rd, etc. shared partners. The closer alfa is to zero, the more dramatic the discounting applied to subsequent shared partners. Shows some effects of transitivity.
-
- grazed.ergm02 <- formula(grazed.s ~ edges     # Geometrically weighted degree count (geométricamente ponderado)
+ grazed.ergm02 <- formula(grazed.s ~ edges     # Geometrically weighted degree count
                      + gwesp(1, fixed=TRUE))
 
- #geometrically weighted degree (gwdegree) estimates the change in tie likelihood given the degree of the nodes involved, but with marginally decreasing weighting as degree increases. 
- 
 grazed.ergm03 <- formula(grazed.s ~ edges       # Geometrically weighted degree
                      + gwdegree(1, fixed=TRUE))
  
@@ -205,7 +198,7 @@ grazed.ergm03 <- formula(grazed.s ~ edges       # Geometrically weighted degree
 
 # Models with explanatory variables. Grazed.
 #
-grazed.ergm1 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)  
+grazed.ergm1 <- formula(grazed.s ~ edges  
                         + nodemain("height")
                         + nodemain("crown.fruits")
                         + nodemain("neighbours")
@@ -217,13 +210,10 @@ grazed.ergm1 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                         + nodemain("vegetation.sd2")
                         + nodemain("vegetation.sd3")
                         + nodemain("litter.site")
-                        + nodemain("bare.site")
+                     #   + nodemain("bare.site")
                         + nodemain("low.site"))
-                        
 
-#explanation of transitivity https://www.sci.unich.it/~francesc/teaching/network/transitivity.html
-
-grazed.ergm2 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+grazed.ergm2 <- formula(grazed.s ~ edges  
                         + nodemain("height")
                         + nodemain("crown.fruits")
                         + nodemain("neighbours")
@@ -238,7 +228,7 @@ grazed.ergm2 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                     #    + nodemain("bare.site")
                      #   + nodemain("low.site"))
 
-grazed.ergm3 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+grazed.ergm3 <- formula(grazed.s ~ edges  
                    #     + nodemain("height")
                     #    + nodemain("crown.fruits")
                     #    + nodemain("neighbours")
@@ -250,11 +240,10 @@ grazed.ergm3 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                     #    + nodemain("vegetation.sd2")
                     #    + nodemain("vegetation.sd3")
                         + nodemain("litter.site")
-                        + nodemain("bare.site")
+                   #     + nodemain("bare.site")
                         + nodemain("low.site"))
                     
-
-grazed.ergm4 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+grazed.ergm4 <- formula(grazed.s ~ edges  
                         + nodemain("height")
                         + nodemain("crown.fruits"))
                  #       + nodemain("neighbours")
@@ -269,7 +258,7 @@ grazed.ergm4 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                   #      + nodemain("bare.site")
                   #      + nodemain("low.site"))
 
-grazed.ergm5 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+grazed.ergm5 <- formula(grazed.s ~ edges 
                    #     + nodemain("height")
                   #      + nodemain("crown.fruits")
                         + nodemain("neighbours")
@@ -284,7 +273,7 @@ grazed.ergm5 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                   #      + nodemain("bare.site")
                   #      + nodemain("low.site"))
 
-grazed.ergm6 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+grazed.ergm6 <- formula(grazed.s ~ edges 
                     #    + nodemain("height")
                     #    + nodemain("crown.fruits")
                         + nodemain("neighbours")
@@ -299,7 +288,7 @@ grazed.ergm6 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                     #    + nodemain("bare.site")
                     #    + nodemain("low.site"))
 
-grazed.ergm7 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+grazed.ergm7 <- formula(grazed.s ~ edges 
                 #        + nodemain("height")
                  #       + nodemain("crown.fruits")
                 #        + nodemain("neighbours")
@@ -314,7 +303,7 @@ grazed.ergm7 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                 #        + nodemain("bare.site")
                 #        + nodemain("low.site")) 
 
-grazed.ergm8 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+grazed.ergm8 <- formula(grazed.s ~ edges  
                    #     + nodemain("height")
                         + nodemain("crown.fruits"))
                   #      + nodemain("neighbours")
@@ -329,7 +318,7 @@ grazed.ergm8 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                   #      + nodemain("bare.site")
                   #      + nodemain("low.site"))
 
-grazed.ergm9 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+grazed.ergm9 <- formula(grazed.s ~ edges  
                         + nodemain("height"))
                     #    + nodemain("crown.fruits")
                     #    + nodemain("neighbours")
@@ -343,7 +332,8 @@ grazed.ergm9 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                     #    + nodemain("litter.site")
                     #    + nodemain("bare.site")
                     #    + nodemain("low.site"))
-grazed.ergm10 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+
+grazed.ergm10 <- formula(grazed.s ~ edges  
                   #      + nodemain("height")
                   #      + nodemain("crown.fruits")
                   #      + nodemain("neighbours")
@@ -358,7 +348,7 @@ grazed.ergm10 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                   #      + nodemain("bare.site")
                   #      + nodemain("low.site"))
                   
-grazed.ergm11 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+grazed.ergm11 <- formula(grazed.s ~ edges 
                #         + nodemain("height")
               #          + nodemain("crown.fruits")
                         + nodemain("neighbours"))
@@ -376,12 +366,11 @@ grazed.ergm11 <- formula(grazed.s ~ edges + gwesp(log(3), fixed=TRUE)
 ```
 
 
-```{r model tests grazed, echo=TRUE, message= TRUE, warning= TRUE}
+```{r model tests grazed, echo=TRUE, message= FALSE, warning= TRUE}
 # Model tests
 # 
 set.seed(42)
 grazed.ergm.fit00 <- ergm(grazed.ergm00)  #Bernoulli model
-grazed.ergm.fit02 <- ergm(grazed.ergm02)
 grazed.ergm.fit1 <- ergm(grazed.ergm1)    # Full model
 grazed.ergm.fit2 <- ergm(grazed.ergm2)    #with microhabitat variables
 grazed.ergm.fit3 <- ergm(grazed.ergm3)    #with mesohabitat variables 
@@ -391,21 +380,12 @@ grazed.ergm.fit6 <- ergm(grazed.ergm6)    #neighborhood variables
 grazed.ergm.fit7 <- ergm(grazed.ergm7)    #vegetation covers
 grazed.ergm.fit8 <- ergm(grazed.ergm8)    #fecundity variables
 grazed.ergm.fit9 <- ergm(grazed.ergm9)    #size variables
-grazed.ergm.fit10 <- ergm(grazed.ergm10)    #intraspecific neighborhood
-grazed.ergm.fit11 <- ergm(grazed.ergm11)    #interspecific neighborhood
-
-# NOT RUN
-# mcmc.diagnostics(m80.ergm.fit0)
-# mcmc.diagnostics(m80.ergm.fit1)
-# mcmc.diagnostics(m80.ergm.fit2)
-# mcmc.diagnostics(m80.ergm.fit3)
-# mcmc.diagnostics(m80.ergm.fit11)
-# mcmc.diagnostics(m80.ergm.fit12)
+grazed.ergm.fit10 <- ergm(grazed.ergm10)  #intraspecific neighborhood
+grazed.ergm.fit11 <- ergm(grazed.ergm11)  #interspecific neighborhood
 
 
 # in order to know the effect of the covariates used at each model, I performed anova for each model
 anova.ergm(grazed.ergm.fit00, test="Chi") #page 92 book
-anova.ergm(grazed.ergm.fit02, test="Chi")
 anova.ergm(grazed.ergm.fit1, test="Chi")
 anova.ergm(grazed.ergm.fit2, test="Chi")
 anova.ergm(grazed.ergm.fit3, test="Chi")
@@ -420,7 +400,6 @@ anova.ergm(grazed.ergm.fit11, test="Chi")
 
 
 anova.ergm(grazed.ergm.fit00, grazed.ergm.fit1, test="Chi")
-anova.ergm(grazed.ergm.fit02, grazed.ergm.fit1, test="Chi")
 anova.ergm(grazed.ergm.fit1, grazed.ergm.fit2, test="Chi")
 anova.ergm(grazed.ergm.fit1, grazed.ergm.fit3, test="Chi")
 anova.ergm(grazed.ergm.fit2, grazed.ergm.fit3, test="Chi")
@@ -440,7 +419,6 @@ anova.ergm(grazed.ergm.fit10, grazed.ergm.fit11, test="Chi")
 
 
 summary.ergm(grazed.ergm.fit00) 
-summary.ergm(grazed.ergm.fit02)
 summary.ergm(grazed.ergm.fit1) #interpretation of estimates page 94 book
 summary.ergm(grazed.ergm.fit2)
 summary.ergm(grazed.ergm.fit3)
@@ -457,15 +435,15 @@ summary.ergm(grazed.ergm.fit11)
 ```
 
 
-```{r}
+```{r, message= FALSE}
 ## Compute table
 require(MuMIn)
 library(dplyr)
 
-tt<- round(BIC(grazed.ergm.fit00, grazed.ergm.fit02, grazed.ergm.fit1, grazed.ergm.fit2,
+tt<- round(BIC(grazed.ergm.fit00, grazed.ergm.fit1, grazed.ergm.fit2,
                grazed.ergm.fit3, grazed.ergm.fit4, grazed.ergm.fit5,grazed.ergm.fit6, grazed.ergm.fit7,            grazed.ergm.fit9, grazed.ergm.fit10, grazed.ergm.fit11), 10)
 
-ttt<- round(Weights(AICc(grazed.ergm.fit00, grazed.ergm.fit02, grazed.ergm.fit1, grazed.ergm.fit2,
+ttt<- round(Weights(AICc(grazed.ergm.fit00, grazed.ergm.fit1, grazed.ergm.fit2,
                grazed.ergm.fit3, grazed.ergm.fit4, grazed.ergm.fit5, grazed.ergm.fit6, grazed.ergm.fit7,            grazed.ergm.fit9, grazed.ergm.fit10, grazed.ergm.fit11)), 10)
 
 model.summ<- arrange(data.frame("model"= row.names(tt), 
@@ -474,14 +452,14 @@ model.summ
 
 ```
 
-```{r, include= FALSE}
+```{r, include= TRUE}
 # Goodness of fit.
 # Note that a p-value closer to one is better: This is the difference between the observed networks and simulations from the model.
 #The black lines are the observed distributions and the boxplots reflect networks simulated from the model.
-gof.grazed.ergm02 <- gof(grazed.ergm.fit02)
-gof.grazed.ergm02
+gof.grazed.ergm00 <- gof(grazed.ergm.fit00)
+gof.grazed.ergm00
 par(mfrow=c(1, 3))
-plot(gof.grazed.ergm02)
+plot(gof.grazed.ergm00)
 
 gof.grazed.ergm1 <- gof(grazed.ergm.fit1)
 par(mfrow=c(1, 3))
@@ -533,7 +511,7 @@ plot(gof.grazed.ergm11)
 
 #UNGRAZED LAND USES
 
-```{r data.ungrazed.build, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 9}
+```{r data.ungrazed.build, echo= TRUE, message= TRUE, warning= FALSE, fig.width= 9}
  
 # Add the node attributes from tree traits
  # 
@@ -589,7 +567,7 @@ nUG.edg<- as_edgelist(netUG.g)
  
 ```{r Bernoulli ungrazed, echo=TRUE, message= TRUE, warning= TRUE, fig.width=9}
  #First separating the network into adjacency matrix and attributes
- #Loading vertex attributes for grazed
+ #Loading vertex attributes for ungrazed
  # 
 library(sand)
  AA <- get.adjacency(netUG.g)
@@ -636,19 +614,23 @@ library(sand)
  
 ungrazed.ergm02 <- formula(ungrazed.s ~ edges     # Geometrically weighted degree count
                      + gwesp(1, fixed=TRUE))
+
+ungrazed.ergm03 <- formula(ungrazed.s ~ edges       # Geometrically weighted degree
+                     + gwdegree(1, fixed=TRUE))
  
  summary.statistics(ungrazed.ergm00)#edges 482
  summary.statistics(ungrazed.ergm01)#edges 482; kstar2 17420; kstar3 353319, triangle 0
  summary.statistics(ungrazed.ergm02)#edges 482, gwesp.fixed.1 0
+ summary.statistics(ungrazed.ergm03)#edges 482, gwdegree 201.3227
  
 ```
 
  
 ```{r models fit ungrazed, echo=TRUE, message= TRUE, warning= TRUE}
 
-# Models with explanatory variables. Grazed.
+# Models with explanatory variables. Ungrazed.
 #
-ungrazed.ergm1 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+ungrazed.ergm1 <- formula(ungrazed.s ~ edges  
                         + nodemain("height")
                         + nodemain("crown.fruits")
                         + nodemain("ground.fruits")
@@ -661,9 +643,7 @@ ungrazed.ergm1 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                         + nodemain("litter.site")
                         + nodemain("medium.site"))
 
-#explanation of transitivity https://www.sci.unich.it/~francesc/teaching/network/transitivity.html
-
-ungrazed.ergm2 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+ungrazed.ergm2 <- formula(ungrazed.s ~ edges 
                         + nodemain("height")
                         + nodemain("crown.fruits")
                         + nodemain("ground.fruits")
@@ -677,7 +657,7 @@ ungrazed.ergm2 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                   #      + nodemain("medium.site"))
 
 
-ungrazed.ergm3 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+ungrazed.ergm3 <- formula(ungrazed.s ~ edges  
                      #   + nodemain("height")
                     #    + nodemain("crown.fruits")
                     #    + nodemain("ground.fruits")
@@ -690,9 +670,8 @@ ungrazed.ergm3 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                         + nodemain("litter.site")
                         + nodemain("medium.site"))
 
- 
 
-ungrazed.ergm4 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+ungrazed.ergm4 <- formula(ungrazed.s ~ edges  
                         + nodemain("height")
                         + nodemain("crown.fruits")
                         + nodemain("ground.fruits"))
@@ -706,8 +685,7 @@ ungrazed.ergm4 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                   #      + nodemain("medium.site"))
 
 
-
-ungrazed.ergm5 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+ungrazed.ergm5 <- formula(ungrazed.s ~ edges  
                     #    + nodemain("height")
                     #    + nodemain("crown.fruits")
                     #    + nodemain("ground.fruits")
@@ -721,7 +699,7 @@ ungrazed.ergm5 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                     #    + nodemain("medium.site"))
 
 
-ungrazed.ergm6 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+ungrazed.ergm6 <- formula(ungrazed.s ~ edges  
                   #      + nodemain("height")
                   #      + nodemain("crown.fruits")
                   #      + nodemain("ground.fruits")
@@ -734,7 +712,7 @@ ungrazed.ergm6 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                   #      + nodemain("litter.site")
                   #      + nodemain("med.site"))
 
-ungrazed.ergm7 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+ungrazed.ergm7 <- formula(ungrazed.s ~ edges  
                 #        + nodemain("height")
                 #        + nodemain("crown.fruits")
                 #        + nodemain("ground.fruits")
@@ -748,7 +726,7 @@ ungrazed.ergm7 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                 #        + nodemain("medium.site"))
 
 
-ungrazed.ergm8 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+ungrazed.ergm8 <- formula(ungrazed.s ~ edges 
                    #     + nodemain("height")
                         + nodemain("crown.fruits")
                         + nodemain("ground.fruits"))
@@ -761,7 +739,7 @@ ungrazed.ergm8 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE)
                   #      + nodemain("litter.site")
                   #      + nodemain("medium.site"))
 
-ungrazed.ergm9 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE) 
+ungrazed.ergm9 <- formula(ungrazed.s ~ edges  
                         + nodemain("height"))
                    #     + nodemain("crown.fruits")
                   #      + nodemain("ground.fruits")
@@ -779,12 +757,11 @@ ungrazed.ergm9 <- formula(ungrazed.s ~ edges + gwesp(log(3), fixed=TRUE)
 ```
 
 
-```{r model tests ungrazed, echo=TRUE, message= TRUE, warning= TRUE}
+```{r model tests ungrazed, echo=TRUE, message= FALSE, warning= TRUE}
 # Model tests
 # 
 set.seed(42)
 ungrazed.ergm.fit00 <- ergm(ungrazed.ergm00)
-ungrazed.ergm.fit02 <- ergm(ungrazed.ergm02)
 ungrazed.ergm.fit1 <- ergm(ungrazed.ergm1)    # Full model
 ungrazed.ergm.fit2 <- ergm(ungrazed.ergm2)    #with microhabitat variables
 ungrazed.ergm.fit3 <- ergm(ungrazed.ergm3)    #with mesohabitat variables 
@@ -796,16 +773,8 @@ ungrazed.ergm.fit8 <- ergm(ungrazed.ergm8)    #fecundity
 ungrazed.ergm.fit9 <- ergm(ungrazed.ergm9)    #tree size
 
 
-# NOT RUN
-# mcmc.diagnostics(m80.ergm.fit0)
-# mcmc.diagnostics(m80.ergm.fit1)
-# mcmc.diagnostics(m80.ergm.fit2)
-# mcmc.diagnostics(m80.ergm.fit3)
-# mcmc.diagnostics(m80.ergm.fit11)
-# mcmc.diagnostics(m80.ergm.fit12)
 
 anova.ergm(ungrazed.ergm.fit00, test="Chi") #page 92 book
-anova.ergm(ungrazed.ergm.fit02, test="Chi")
 anova.ergm(ungrazed.ergm.fit1, test="Chi")
 anova.ergm(ungrazed.ergm.fit2, test="Chi")
 anova.ergm(ungrazed.ergm.fit3, test="Chi")
@@ -817,7 +786,6 @@ anova.ergm(ungrazed.ergm.fit8, test="Chi")
 anova.ergm(ungrazed.ergm.fit9, test="Chi")
 
 anova.ergm(ungrazed.ergm.fit00, ungrazed.ergm.fit1, test="Chi")
-anova.ergm(ungrazed.ergm.fit02, ungrazed.ergm.fit1, test="Chi")
 anova.ergm(ungrazed.ergm.fit1, ungrazed.ergm.fit2, test="Chi")
 anova.ergm(ungrazed.ergm.fit1, ungrazed.ergm.fit3, test="Chi")
 anova.ergm(ungrazed.ergm.fit2, ungrazed.ergm.fit3, test="Chi")
@@ -835,7 +803,6 @@ anova.ergm(ungrazed.ergm.fit8, ungrazed.ergm.fit9, test="Chi")
 
 
 summary.ergm(ungrazed.ergm.fit00) 
-summary.ergm(ungrazed.ergm.fit02)
 summary.ergm(ungrazed.ergm.fit1) #interpretation of estimates page 94 book
 summary.ergm(ungrazed.ergm.fit2)
 summary.ergm(ungrazed.ergm.fit3)
@@ -853,10 +820,10 @@ summary.ergm(ungrazed.ergm.fit9)
 require(MuMIn)
 library(dplyr)
 
-tt<- round(BIC(ungrazed.ergm.fit00, ungrazed.ergm.fit02, ungrazed.ergm.fit1, ungrazed.ergm.fit2,
+tt<- round(BIC(ungrazed.ergm.fit00, ungrazed.ergm.fit1, ungrazed.ergm.fit2,
                ungrazed.ergm.fit3, ungrazed.ergm.fit4, ungrazed.ergm.fit5,ungrazed.ergm.fit6, ungrazed.ergm.fit7, ungrazed.ergm.fit8, ungrazed.ergm.fit9), 10)
 
-ttt<- round(Weights(AICc(ungrazed.ergm.fit00, ungrazed.ergm.fit02, ungrazed.ergm.fit1, ungrazed.ergm.fit2,
+ttt<- round(Weights(AICc(ungrazed.ergm.fit00, ungrazed.ergm.fit1, ungrazed.ergm.fit2,
                ungrazed.ergm.fit3, ungrazed.ergm.fit4, ungrazed.ergm.fit5,ungrazed.ergm.fit6, ungrazed.ergm.fit7, ungrazed.ergm.fit8, ungrazed.ergm.fit9)), 10)
 
 model.summ<- arrange(data.frame("model"= row.names(tt), 
@@ -865,12 +832,12 @@ model.summ
 
 ```
 
-```{r, include= FALSE}
+```{r, include= TRUE}
 # Goodness of fit.
 # 
-gof.ungrazed.ergm02 <- gof(ungrazed.ergm.fit02)
+gof.ungrazed.ergm00 <- gof(ungrazed.ergm.fit00)
 par(mfrow=c(1, 3))
-plot(gof.ungrazed.ergm02)
+plot(gof.ungrazed.ergm00)
 
 gof.ungrazed.ergm1 <- gof(ungrazed.ergm.fit1)
 par(mfrow=c(1, 3))
