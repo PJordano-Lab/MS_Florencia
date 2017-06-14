@@ -210,9 +210,6 @@ spG
 sp<-specieslevel(wG,level="lower")
 sp
 
-write.csv(splevelG,"splevelGl.csv")
-
-
 splevelUG<-specieslevel(wUG, level= "higher") # This gives you a lot of parameters
 # for each species and each Prosopis tree
 splevelUG
@@ -268,11 +265,11 @@ printoutModuleInformation(MUG)
 
 plotModuleWeb(MUG)
 
-jpeg(filename = "pMUG.jpg",
-     width = 125, height = 48, units = "cm", pointsize = 12,
-     quality = 75,
-     bg = "white", res = 300, family = "", restoreConsole = TRUE,
-     type = c("windows", "cairo"))
+#jpeg(filename = "pMUG.jpg",
+    # width = 125, height = 48, units = "cm", pointsize = 12,
+     #quality = 75,
+     #bg = "white", res = 300, family = "", restoreConsole = TRUE,
+    # type = c("windows", "cairo"))
 
 #Mboth<- computeModules(wboth, method="Beckett", deep=FALSE, deleteOriginalFiles=FALSE,
                          #   steps= 1000, tolerance= 1e-10, experimental= FALSE, 
@@ -360,26 +357,7 @@ Msig(mymat, mod_obs)
 Sys.time() - TIME 
 
 ```
-##Grazed network: P value for modularity M=  0.5176449 
-##zeta=   54.30122 P=   0e+00 
 
-##Ungrazed network: P value for modularity M=  0.4084378  
-##zeta=   25.50094 P=    1.924602e-143
+##### Hamming Distance, library(sna)
 
-
-
-# Hamming Distance, library(sna)
-
-## Is the number of addition/deletion operations required to turn the edge set of G_1 into that of G_2.The Hamming distance is extremely sensitive to nodal labeling, and should not be employed directly when nodes are interchangeable. G_1 and G_2 are labeled graphs
-
-
-```{r hamming distance, echo= TRUE, message= TRUE, warning= TRUE }
-
-hdist(dat, dat2, g1, g2, normalize= TRUE, 
-    diag= FALSE, mode= "digraph")
-
-```
-
-
-
-
+##### Is the number of addition/deletion operations required to turn the edge set of G_1 into that of G_2.The Hamming distance is extremely sensitive to nodal labeling, and should not be employed directly when nodes are interchangeable. G_1 and G_2 are labeled graphs
