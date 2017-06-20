@@ -33,6 +33,9 @@ library(ggplot2)
 ```
  
 ```{r}
+
+#we used canonical.correlations.csv data frame including trees with and without frugivore interactions (as the one used for networks construction). This matrix include plant traits and data of frugivore interaction. 
+
 mod<- read.csv("../data/canonical.correlations.csv",header=T,sep=",",dec=".",na.strings="NA")
 str(mod)
 
@@ -40,6 +43,7 @@ str(mod)
 ```{r spatial autocorrelation, echo= TRUE, message= FALSE, warning= TRUE}
 library(nlme)
 
+#To test for spatial autocorrelation
 #Pinheiro, J.C., and Bates, D.M. (2000) "Mixed-Effects Models in S and S-PLUS", Springer.
 
 fm1.lme<-lme(Gra.gri ~site, random=~1|trees,data=mod)
@@ -58,6 +62,7 @@ anova(fm1.lme, fm2.lme)
 
 ```{r interaction correlations,echo= TRUE, message= TRUE, warning= TRUE }
 
+#to test for correlation between frugivore interactions. 
 #http://www.statisticssolutions.com/table-of-critical-values-pearson-correlation/
 #for a length of 12 consider a significant correlation higher than 0.58  (p< 0.05)
 
@@ -124,7 +129,8 @@ nG.edg<- as_edgelist(netG.g)
  For now just the grazed graph is analyzed.
  
 ```{r Bernoulli grazed, echo=TRUE, message= TRUE, warning= TRUE, fig.width=9}
- #First separating the network into adjacency matrix and attributes
+ 
+#First separating the network into adjacency matrix and attributes
  #Loading vertex attributes for grazed land uses
  #I do not include variables with a correlation >0.30 (obtained from matcor function).  
 
@@ -133,6 +139,7 @@ library(sand)
  v.attrs <- get.data.frame(netG.g, what="vertices")[1:114,]
  
  #Then, creating the analogous network object for ergm
+ 
  library(ergm) # Will load package 'network' as well.
  grazed.s <- network::as.network(as.matrix(AA),
                               directed=FALSE, bipartite=114) 

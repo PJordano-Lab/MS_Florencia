@@ -14,7 +14,9 @@ require(CCA)
 ```
 
 
-```{r}
+```{r data frame, echo= TRUE, message= TRUE, warning= TRUE}
+
+#the canonical.correlations.csv (can) includes trees with and without frugivore interactions. Instead, the selected_trees.csv (cans) only includes trees with frugivore visits. We used this matrix to run CCA.
 
 #can<- read.csv("../data/canonical.correlations.csv",header=T,sep=",",dec=".",na.strings="NA")
 #str(can)
