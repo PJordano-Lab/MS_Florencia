@@ -458,6 +458,15 @@ model.summ<- arrange(data.frame("model"= row.names(tt),
 model.summ
 
 ```
+```{r models table grazed site}
+
+library(texreg)
+
+tab<- htmlreg(list(grazed.ergm.fit1, grazed.ergm.fit2, grazed.ergm.fit3, grazed.ergm.fit4, grazed.ergm.fit5, grazed.ergm.fit6, grazed.ergm.fit7, grazed.ergm.fit8, grazed.ergm.fit9, grazed.ergm.fit10, grazed.ergm.fit11),  file="mytable.doc", doctype=FALSE, star.symbol="\\*", align.center=TRUE)
+
+tab
+
+```
 
 ```{r, include= TRUE}
 # Goodness of fit.
@@ -836,6 +845,17 @@ ttt<- round(Weights(AICc(ungrazed.ergm.fit00, ungrazed.ergm.fit1, ungrazed.ergm.
 model.summ<- arrange(data.frame("model"= row.names(tt), 
                      tt, "AICw"= ttt), desc(AICw))
 model.summ
+
+```
+
+```{r models table ungrazed site}
+
+library(texreg)
+
+tabug<-htmlreg(list(ungrazed.ergm.fit1, ungrazed.ergm.fit2, ungrazed.ergm.fit3, ungrazed.ergm.fit4, ungrazed.ergm.fit5, ungrazed.ergm.fit6, ungrazed.ergm.fit7, ungrazed.ergm.fit8, ungrazed.ergm.fit9),  file="mytableungrazed.doc", doctype=FALSE, star.symbol="\\*", align.center=TRUE)
+
+tabug
+
 
 ```
 
