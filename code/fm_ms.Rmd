@@ -113,15 +113,16 @@ head(grazed); head(ungrazed); head(both)
 #col = c("actor" = "grey", "event" = "gold")
 
 
-ggnet2(bipwG, size = 5 ,
+G<-ggnet2(bipwG, size = 5 ,
         edge.size= edge.weights(wG, 5), edge.alpha= .25,
-         label= T, label.size= 3,
+         label= T, label.size= 1.5,
          color= "mode", palette = "Set2",
-         shape= "mode")
+         shape= "mode") 
+G
 
 
  # UNGRAZED
- bipwUG= network(wUG,
+bipwUG= network(wUG,
                 matrix.type = "bipartite",
                 ignore.eval = FALSE,
                 names.eval = "weights",
@@ -129,12 +130,24 @@ ggnet2(bipwG, size = 5 ,
   # set colors for each mode
   #col = c("actor" = "grey", "event" = "gold")
   
- ggnet2(bipwUG, node.size = 5,
+ Ug<-ggnet2(bipwUG, node.size = 5,
         edge.size= edge.weights(wUG, 5), edge.alpha= .25,
-         label= TRUE, label.size= 3,
+         label= TRUE, label.size= 1.5,
          color= "mode", palette = "Set2",
          shape= "mode")
+ Ug
  
+
+```
+```{r saving network plots}
+
+ggsave("Grazed network.jpg", plot = last_plot(), device = "jpg", path = NULL,
+  scale = 1, width = 16.6, height = 8, units = "cm",
+  dpi = 300)
+
+ggsave("Ungrazed network.jpg", plot = last_plot(), device = "jpg", path = NULL,
+  scale = 1, width = 16.6, height = 8, units = "cm",
+  dpi = 300)
 
 ```
 
@@ -207,10 +220,12 @@ splevelG
 spG<-specieslevel(wG,level="higher")
 spG
 
+write.csv(spUG,file="spUG.csv")
+
 sp<-specieslevel(wG,level="lower")
 sp
 
-splevelUG<-specieslevel(wUG, level= "higher") # This gives you a lot of parameters
+spUG<-specieslevel(wUG, level= "higher") # This gives you a lot of parameters
 # for each species and each Prosopis tree
 splevelUG
 
@@ -283,6 +298,21 @@ plotModuleWeb(MUG)
 
 #plotModuleWeb(Mboth)
 
+
+```
+```{r czvalues}
+
+czGf<-czvalues(MG, weighted=TRUE, level="lower")
+czGf
+
+czGp<-czvalues(MG, weighted=TRUE, level="higher")
+czGp
+
+czUGf<-czvalues(MUG, weighted=TRUE, level="lower")
+czUGf
+
+czUGp<-czvalues(MUG, weighted=TRUE, level="higher")
+czUGp
 
 ```
 
