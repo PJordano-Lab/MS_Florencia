@@ -393,12 +393,92 @@ Sys.time() - TIME
 Is the number of addition/deletion operations required to turn the edge set of G_1 into that of G_2.The Hamming distance is extremely sensitive to nodal labeling, and should not be employed directly when nodes are interchangeable. G_1 and G_2 are labeled graphs
 
 ```{r mod_signif, echo=FALSE, message= TRUE, warning= TRUE}
+#-----------------------------------------------------------------------
+## Comparison of two network structures.
+## Based on code for MS_Integration with Alfredo and Martin.
+## Sevilla. 14Mar2007. Revised July 2007 - Freiburg.
+## Sevilla 30 July 2007. Added final phylogeny.
+## Sevilla 12 Nov 2007. Freiburg 12-13 Nov. New version.
+## Modified in Copenhagen->Aarhus train. 7 October 2011.
+## Modified for Florencia analyses; Sevilla, 17 July 2017.
+#-----------------------------------------------------------------------l
+library(vegan)
+library(ade4)
+library(ca)
+library(nFactors)
+library(network)
+library(sna)
+#-----------------------------------------------------------------------
+# Assign dataset
+dim(ungrazed)
+dim(grazed)
+colSums(ungrazed[,2:13]); colSums(grazed[,2:13])
+rowSums(ungrazed[,2:13]); rowSums(grazed[,2:13])
 
-#Grazed sites
-#
-#
-#
-#
+wUG1<-ungrazed[,2:13]    # 70x12
+wG1<-(grazed[,2:13])     # 120x12
+
+# I trimm the grazed dataset to delete trees so that I get N=70.
+# Trees with 0 records are included.
+# 
+wG1<- wG1 %>% 
+           dplyr::filter(rowSums(wG1^2)!=0) 
+dim(wG1)    # 106x12
+
+rG1<- sample_n(wG1, 70, replace= F)   # Random sample from wG1 with N=70 trees (without replacement).
+dim(rG1)
+dim(wUG1)
+
+#-------------------------------------------------------------------------
+# sna Analyses with Quadratic assignment procedures.
+# Generate graph
+# NOTE: I've trimmed the adjacency matrices of the Grazed site to get the
+# same dimension.
+grG1<-network(rG1, vertex.attr=NULL, vertex.attrnames=NULL, directed=F,hyper=FALSE, matrix.type="adjacency", multiple=FALSE, bipartite = 70)
+gwUG1<-network(wUG1, vertex.attr=NULL, vertex.attrnames=NULL, directed=F,hyper=FALSE, matrix.type="adjacency", multiple=FALSE, bipartite = 70)
+
+#Perform qap tests of graph correlation
+prosop<- array(dim=c(2,70,12))
+prosop[1,,]<- rG1
+prosop[2,,]<- wUG1
+
+g08<-array(dim=c(2,15,58))
+g08[1,,]<-tei08pre.qt
+g08[2,,]<-tei08pos.qt[1:15,]
+g09<-array(dim=c(2,15,68))
+g09[1,,]<-tei09pre.qt
+g09[2,,]<-tei09pos.qt[1:15,]
+
+#Perform qap tests of graph correlation
+q.08<-qaptest(g08,gcor,g1=1,g2=2)
+q.09<-qaptest(g09,gcor,g1=1,g2=2)
+
+#Examine the results
+summary(q.08)
+summary(q.09)
+plot(q.09)
+
+#-------------------------------------------------------------------------
+# The Hamming distance between two labeled graphs G_1 and G_2 is equal to |{e : (e in E(G_1) and e not in E(G_2)) or (e not in E(G_1) and e in E(G_2))}|. In more prosaic terms, this may be thought of as the number of addition/deletion operations required to turn the edge set of G_1 into that of G_2.
+# hdist
+q.Hd08<-qaptest(g08,hdist,g1=1,g2=2)
+q.Hd09<-qaptest(g09,hdist,g1=1,g2=2)
+summary(q.Hd08)
+summary(q.Hd09)
+plot(q.12,xlim=c(7000,12000))
+
+# Structural Distances. structdist returns the structural distance between the labeled graphs g1 and g2 in stack dat based on Hamming distance for dichotomous data, or else the absolute (manhattan) distance. If normalize is true, this distance is divided by its dichotomous theoretical maximum (conditional on |V(G)|).
+structdist(g08,method="anneal", prob.init=0.9, prob.decay=0.85, 
+    freeze.time=50, full.neighborhood=TRUE)
+structdist(g09,method="anneal", prob.init=0.9, prob.decay=0.85, 
+           freeze.time=50, full.neighborhood=TRUE)
+
+# Structural correlation between the adjacency matrices of graphs.
+gscor(g08)
+gscor(g09)
+
+#-----------------------------------------------------------------------
+
 ```
 
 --------------------------
