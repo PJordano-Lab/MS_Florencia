@@ -388,6 +388,29 @@ Sys.time() - TIME
 
 ```
 
-##### Hamming Distance, library(sna)
+### Hamming Distance, library(sna)
 
-##### Is the number of addition/deletion operations required to turn the edge set of G_1 into that of G_2.The Hamming distance is extremely sensitive to nodal labeling, and should not be employed directly when nodes are interchangeable. G_1 and G_2 are labeled graphs
+Is the number of addition/deletion operations required to turn the edge set of G_1 into that of G_2.The Hamming distance is extremely sensitive to nodal labeling, and should not be employed directly when nodes are interchangeable. G_1 and G_2 are labeled graphs
+
+```{r mod_signif, echo=FALSE, message= TRUE, warning= TRUE}
+
+#Grazed sites
+#
+#
+#
+#
+```
+
+--------------------------
+
+```{r session_info }
+sessionInfo()
+
+```
+
+
+
+
+
+
+
