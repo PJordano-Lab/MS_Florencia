@@ -438,25 +438,16 @@ grG1<-network(rG1, vertex.attr=NULL, vertex.attrnames=NULL, directed=F,hyper=FAL
 gwUG1<-network(wUG1, vertex.attr=NULL, vertex.attrnames=NULL, directed=F,hyper=FALSE, matrix.type="adjacency", multiple=FALSE, bipartite = 70)
 
 #Perform qap tests of graph correlation
-prosop<- array(dim=c(2,70,12))
-prosop[1,,]<- rG1
-prosop[2,,]<- wUG1
-
-g08<-array(dim=c(2,15,58))
-g08[1,,]<-tei08pre.qt
-g08[2,,]<-tei08pos.qt[1:15,]
-g09<-array(dim=c(2,15,68))
-g09[1,,]<-tei09pre.qt
-g09[2,,]<-tei09pos.qt[1:15,]
+prosop<- array(dim=c(70,12,2))
+prosop[,,1]<- rG1
+prosop[,,2]<- wUG1
 
 #Perform qap tests of graph correlation
-q.08<-qaptest(g08,gcor,g1=1,g2=2)
-q.09<-qaptest(g09,gcor,g1=1,g2=2)
+q<-qaptest(prosop,gcor, g1=1, g2=2)
 
 #Examine the results
-summary(q.08)
-summary(q.09)
-plot(q.09)
+summary(q)
+plot(q)
 
 #-------------------------------------------------------------------------
 # The Hamming distance between two labeled graphs G_1 and G_2 is equal to |{e : (e in E(G_1) and e not in E(G_2)) or (e not in E(G_1) and e in E(G_2))}|. In more prosaic terms, this may be thought of as the number of addition/deletion operations required to turn the edge set of G_1 into that of G_2.
