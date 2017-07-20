@@ -450,12 +450,16 @@ grG1<-network(rG1, vertex.attr=NULL, vertex.attrnames=NULL, directed=F,hyper=FAL
 gwUG1<-network(wUG1, vertex.attr=NULL, vertex.attrnames=NULL, directed=F,hyper=FALSE, matrix.type="adjacency", multiple=FALSE, bipartite = 70)
 
 #Perform qap tests of graph correlation
-prosop<- array(dim=c(70,12,2))
-prosop[,,1]<- rG1
-prosop[,,2]<- wUG1
+prosop<- base::array(dim=c(2,70,12))
+prosop[1,,]<- as.matrix(rG1)
+prosop[2,,]<- as.matrix(wUG1)
+
+# Doesn't work when I load the graphs (!!!!)
+prosop[1,,]<- grG1
+prosop[2,,]<- gwUG1
 
 #Perform qap tests of graph correlation
-q<-qaptest(prosop,gcor, g1=1, g2=2)
+q<-qaptest(prosop, gcor, g1=1, g2=2)
 
 #Examine the results
 summary(q)
@@ -464,21 +468,16 @@ plot(q)
 #-------------------------------------------------------------------------
 # The Hamming distance between two labeled graphs G_1 and G_2 is equal to |{e : (e in E(G_1) and e not in E(G_2)) or (e not in E(G_1) and e in E(G_2))}|. In more prosaic terms, this may be thought of as the number of addition/deletion operations required to turn the edge set of G_1 into that of G_2.
 # hdist
-q.Hd08<-qaptest(g08,hdist,g1=1,g2=2)
-q.Hd09<-qaptest(g09,hdist,g1=1,g2=2)
-summary(q.Hd08)
-summary(q.Hd09)
-plot(q.12,xlim=c(7000,12000))
+q.prosop<-qaptest(prosop,hdist,g1=1,g2=2)
+summary(q.prosop)
+plot(q.prosop,xlim=c(7000,12000))
 
 # Structural Distances. structdist returns the structural distance between the labeled graphs g1 and g2 in stack dat based on Hamming distance for dichotomous data, or else the absolute (manhattan) distance. If normalize is true, this distance is divided by its dichotomous theoretical maximum (conditional on |V(G)|).
-structdist(g08,method="anneal", prob.init=0.9, prob.decay=0.85, 
+structdist(prosop,method="anneal", prob.init=0.9, prob.decay=0.85, 
     freeze.time=50, full.neighborhood=TRUE)
-structdist(g09,method="anneal", prob.init=0.9, prob.decay=0.85, 
-           freeze.time=50, full.neighborhood=TRUE)
 
 # Structural correlation between the adjacency matrices of graphs.
-gscor(g08)
-gscor(g09)
+gscor(prosop)
 
 #-----------------------------------------------------------------------
 
