@@ -525,8 +525,9 @@ for (i in 1:rndmz) {
   rand_hdist_obs<- append(rand_hdist_obs, q.prosop$testval)
   rand_hdist_mean_resamp<- append(rand_hdist_mean_resamp, mean(q.prosop$dist))
 }
-plot(density(rand_hdist_mean_resamp), xlim= c(min(rand_hdist_obs), max(rand_hdist_mean_resamp)))
-abline(v= mean(rand_hdist_obs), col = "blue", lty = 3)
+{plot(density(rand_hdist_mean_resamp), xlim= c(min(rand_hdist_obs), max(rand_hdist_mean_resamp)))
+abline(v= mean(rand_hdist_obs), col = "blue", lty = 3)}
+
 
 Sys.time() - TIME
 
