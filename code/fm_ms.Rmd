@@ -155,7 +155,7 @@ ggsave("Ungrazed network.pdf", plot = last_plot(), device = "pdf", path = NULL,
 
 
 
-#Plot bipartite network for all trees 
+# Plot bipartite network for all trees 
 
 ```{r plot_all_trees, fig.width=9, eval= T}
 
@@ -417,7 +417,7 @@ library(nFactors)
 library(network)
 library(sna)
 #-----------------------------------------------------------------------
-# Assign dataset
+# Assign dataset, and remove trees with no interactions.
 dim(ungrazed)
 dim(grazed)
 rowSums(ungrazed[,2:13])
@@ -491,6 +491,8 @@ gscor(prosop)
 
 ```
 
+
+### Randomization tests for QAP and Hamming's distance
 
 ```{r rand_Hamming, echo=FALSE, message= TRUE, warning= TRUE}
 # Fully randomized assignment of the GRAZED dataset, no. resamps: 999.
