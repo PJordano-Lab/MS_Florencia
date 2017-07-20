@@ -9,6 +9,8 @@ rand_q_mean_resamp<- NULL       # mean QAP q value for 1000 random marices of ea
 rand_hdist_obs<- NULL           # Hamming h value for observed matrix in each resampling.
 rand_hdist_mean_resamp<- NULL   # mean Hamming h value for 1000 random marices of each resampling.
 #-----------------------------
+TIME <- Sys.time()
+
 for (i in 1:rndmz) {
   rG1<- sample_n(wG1, 61, replace= F)   # Random sample from wG1 with N=70 trees (without replacement).
   #Perform qap tests of graph correlation. I use the adjacency matrices as input.
@@ -30,3 +32,5 @@ for (i in 1:rndmz) {
 }
 plot(density(rand_hdist_mean_resamp), xlim= c(min(rand_hdist_obs), max(rand_hdist_mean_resamp)))
 abline(v= mean(rand_hdist_obs), col = "blue", lty = 3)
+
+Sys.time() - TIME
