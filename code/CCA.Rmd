@@ -50,12 +50,24 @@ str(cans)
 
 fruG <- cans [1:108, 31:42]
 fruG <- fruG [, -10] #I do not include data of Ctenomys mendocinus in grazed sites, because it did not interact with trees
-plantG <- cans [1:108, 4:21]
+#plantG <- cans [1:108, 4:21]
+plantG <- cans [1:108, 4:28]
+plantG <- plantG [, -19]
+plantG <- plantG [, -19]
+plantG <- plantG [, -20]
+
 
 #Ungrazed sites
 
 fruUG <- cans [109:172, 31:40] #I do not include in analysis data of Bos taurus and Equus caballus for ungrazed land uses
-plantUG <- cans [109:172, 4:21]
+#plantUG <- cans [109:172, 4:21]
+plantUG <- cans [109:172, 4:28]
+plantUG <- plantUG [, -19]
+plantUG <- plantUG [, -19]
+plantUG <- plantUG [, -20]
+
+
+
 
 ```
 
