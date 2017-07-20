@@ -430,14 +430,24 @@ rowSums(ungrazed[,2:13]); rowSums(grazed[,2:13])
 wUG1<-ungrazed[,2:13]    # 70x12
 wG1<-(grazed[,2:13])     # 120x12
 
-# I trimm the grazed dataset to delete trees so that I get N=70.
-# Trees with 0 records are included.
+# I trimm the ungrazed dataset to delete trees with no records (10 trees).
+# Trees with 0 records are not included.
+# 
+wUG1<- wUG1 %>% 
+           dplyr::filter(rowSums(wUG1^2)!=0) 
+dim(wUG1)    # 61x12
+
+# I trimm the grazed dataset to delete trees with no records (13 trees).
+# Trees with 0 records are not included.
 # 
 wG1<- wG1 %>% 
            dplyr::filter(rowSums(wG1^2)!=0) 
 dim(wG1)    # 106x12
 
-rG1<- sample_n(wG1, 70, replace= F)   # Random sample from wG1 with N=70 trees (without replacement).
+# I trimm the grazed dataset to delete trees so that I get N=61.
+# Trees with 0 records are included.
+# Datasets from the G and UG sites have now 61x12
+rG1<- sample_n(wG1, 61, replace= F)   # Random sample from wG1 with N=70 trees (without replacement).
 dim(rG1)
 dim(wUG1)
 
@@ -446,11 +456,13 @@ dim(wUG1)
 # Generate graph
 # NOTE: I've trimmed the adjacency matrices of the Grazed site to get the
 # same dimension.
-grG1<-network(rG1, vertex.attr=NULL, vertex.attrnames=NULL, directed=F,hyper=FALSE, matrix.type="adjacency", multiple=FALSE, bipartite = 70)
-gwUG1<-network(wUG1, vertex.attr=NULL, vertex.attrnames=NULL, directed=F,hyper=FALSE, matrix.type="adjacency", multiple=FALSE, bipartite = 70)
+# 
+# # These are the graphs
+grG1<-network(rG1, vertex.attr=NULL, vertex.attrnames=NULL, directed=F,hyper=FALSE, matrix.type="adjacency", multiple=FALSE, bipartite = 61)
+gwUG1<-network(wUG1, vertex.attr=NULL, vertex.attrnames=NULL, directed=F,hyper=FALSE, matrix.type="adjacency", multiple=FALSE, bipartite = 61)
 
-#Perform qap tests of graph correlation
-prosop<- base::array(dim=c(2,70,12))
+#Perform qap tests of graph correlation. I use the adjacency matrices as input.
+prosop<- base::array(dim=c(2,61,12))
 prosop[1,,]<- as.matrix(rG1)
 prosop[2,,]<- as.matrix(wUG1)
 
@@ -470,7 +482,7 @@ plot(q)
 # hdist
 q.prosop<-qaptest(prosop,hdist,g1=1,g2=2)
 summary(q.prosop)
-plot(q.prosop,xlim=c(7000,12000))
+plot(q.prosop)
 
 # Structural Distances. structdist returns the structural distance between the labeled graphs g1 and g2 in stack dat based on Hamming distance for dichotomous data, or else the absolute (manhattan) distance. If normalize is true, this distance is divided by its dichotomous theoretical maximum (conditional on |V(G)|).
 structdist(prosop,method="anneal", prob.init=0.9, prob.decay=0.85, 
