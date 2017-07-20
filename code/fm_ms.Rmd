@@ -43,10 +43,12 @@ ungrazed<- main %>%
           dplyr::filter(site=="ungrazed")%>% 
           dplyr::select(1,32:43)
 
-both<- main %>%  
-          dplyr::select(1,32:43)
+#both<- main %>%  
+ #         dplyr::select(1,32:43)
 
-head(grazed); head(ungrazed); head(both)
+head(grazed); head(ungrazed)
+
+# head(both)
 
          
 ```
@@ -113,7 +115,7 @@ head(grazed); head(ungrazed); head(both)
 #col = c("actor" = "grey", "event" = "gold")
 
 
-G<-ggnet2(bipwG, size = 5 ,
+G<-ggnet2(bipwG, size = 4 ,
         edge.size= edge.weights(wG, 5), edge.alpha= .25,
          label= T, label.size= 1.5,
          color= "mode", palette = "Set2",
@@ -130,7 +132,7 @@ bipwUG= network(wUG,
   # set colors for each mode
   #col = c("actor" = "grey", "event" = "gold")
   
- Ug<-ggnet2(bipwUG, node.size = 5,
+ Ug<-ggnet2(bipwUG, node.size = 4,
         edge.size= edge.weights(wUG, 5), edge.alpha= .25,
          label= TRUE, label.size= 1.5,
          color= "mode", palette = "Set2",
@@ -141,11 +143,11 @@ bipwUG= network(wUG,
 ```
 ```{r saving network plots}
 
-ggsave("Grazed network.jpg", plot = last_plot(), device = "jpg", path = NULL,
+ggsave("Grazed network.pdf", plot = last_plot(), device = "pdf", path = NULL,
   scale = 1, width = 16.6, height = 8, units = "cm",
   dpi = 300)
 
-ggsave("Ungrazed network.jpg", plot = last_plot(), device = "jpg", path = NULL,
+ggsave("Ungrazed network.pdf", plot = last_plot(), device = "pdf", path = NULL,
   scale = 1, width = 16.6, height = 8, units = "cm",
   dpi = 300)
 
@@ -266,6 +268,7 @@ printoutModuleInformation(MG)
 
 plotModuleWeb(MG)
 
+
 #Ungrazed sites
 MUG<- computeModules(wUG, method="Beckett", deep=FALSE, deleteOriginalFiles=FALSE,
                              steps= 1000, tolerance= 1e-10, experimental= FALSE, 
@@ -280,11 +283,6 @@ printoutModuleInformation(MUG)
 
 plotModuleWeb(MUG)
 
-#jpeg(filename = "pMUG.jpg",
-    # width = 125, height = 48, units = "cm", pointsize = 12,
-     #quality = 75,
-     #bg = "white", res = 300, family = "", restoreConsole = TRUE,
-    # type = c("windows", "cairo"))
 
 #Mboth<- computeModules(wboth, method="Beckett", deep=FALSE, deleteOriginalFiles=FALSE,
                          #   steps= 1000, tolerance= 1e-10, experimental= FALSE, 
@@ -298,8 +296,22 @@ plotModuleWeb(MUG)
 
 #plotModuleWeb(Mboth)
 
+```
+```{r save plotmodules, fig.width=9}
+
+pdf('modulesgrazed.pdf', width = 60, height = 48,  pointsize = 60)
+plotModuleWeb(MG)
+dev.off()
+
+pdf('modulesungrazed.pdf', width = 60, height = 48,  pointsize = 60)
+plotModuleWeb(MUG)
+dev.off()
 
 ```
+
+
+
+
 ```{r czvalues}
 
 czGf<-czvalues(MG, weighted=TRUE, level="lower")
