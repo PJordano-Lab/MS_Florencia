@@ -498,7 +498,7 @@ gscor(prosop)
 # Trees with 0 records are excluded.
 # Datasets from the G and UG sites have now 61x12
 #
-rndmz<-10                       # Number of randomizations required
+rndmz<- 999                     # Number of randomizations required
 rand_qobs<- NULL                # QAP q value for observed matrix in each resampling.
 rand_q_mean_resamp<- NULL       # mean QAP q value for 1000 random marices of each resampling.
 rand_hdist_obs<- NULL           # Hamming h value for observed matrix in each resampling.
