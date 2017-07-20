@@ -57,7 +57,7 @@ plantG <- plantG [, -19]
 plantG <- plantG [, -20]
 
 
-#Ungrazed sites
+# Ungrazed sites
 
 fruUG <- cans [109:172, 31:40] #I do not include in analysis data of Bos taurus and Equus caballus for ungrazed land uses
 #plantUG <- cans [109:172, 4:21]
@@ -66,10 +66,28 @@ plantUG <- plantUG [, -19]
 plantUG <- plantUG [, -19]
 plantUG <- plantUG [, -20]
 
-
-
+# Correlation matrices- habitat variables.
+cor(plantG)
+cor(plantUG)
 
 ```
+
+
+## Evaluate colinearity
+
+I am setting a strict threshold of `thresh= 5`; if I relax the value to `thresh= 10` then variable `Veg_pot` would be added to the final model. Finally we use `thresh= 10`.
+
+```{r colinearity}
+# Evaluate Collinearity
+
+require(VIF)
+
+source("vif_function.R")
+vif_func(in_frame= plantG, thresh=2, trace=T)
+vif_func(in_frame= plantUG, thresh=2, trace=T)
+
+```
+
 
 
 ```{r correlations, echo= TRUE, message= TRUE, warning= TRUE}
@@ -94,6 +112,11 @@ ccG
 ##Ungrazed sites
 ccUG<-cc(fruUG, plantUG)
 ccUG
+
+mod <- cca(fruUG,plantUG)
+goodness(mod, addprevious = TRUE, summ = TRUE)
+# vif.cca 
+vif.cca(mod)
 
 ```
 
