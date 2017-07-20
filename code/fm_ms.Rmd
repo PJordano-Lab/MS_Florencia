@@ -24,7 +24,7 @@ library(bipartite)
 
 # NETWORKS
 
-```{r}
+```{r input}
 main<- read.csv("../data/interaction_matrix.csv", header= T, sep= ",",
                 dec = ".", na.strings = "NA")
 str(main)
@@ -209,12 +209,8 @@ Bipartite provides functions to visualise webs and calculate a series of indices
 
 ### GRAZED
 
-```{r}
-library(bipartite)
-```
-
 ```{r indices, echo= TRUE, message= TRUE, warning= TRUE}
-
+require(bipartite)
 splevelG<-specieslevel(wG)# This gives you a lot of parameters level="higher" or level="lower"
 # for each species and each Prosopis tree
 splevelG
@@ -404,7 +400,7 @@ Sys.time() - TIME
 
 Is the number of addition/deletion operations required to turn the edge set of G_1 into that of G_2.The Hamming distance is extremely sensitive to nodal labeling, and should not be employed directly when nodes are interchangeable. G_1 and G_2 are labeled graphs
 
-```{r mod_signif, echo=FALSE, message= TRUE, warning= TRUE}
+```{r Hamming, echo=FALSE, message= TRUE, warning= TRUE}
 #-----------------------------------------------------------------------
 ## Comparison of two network structures.
 ## Based on code for MS_Integration with Alfredo and Martin.
@@ -424,20 +420,20 @@ library(sna)
 # Assign dataset
 dim(ungrazed)
 dim(grazed)
-colSums(ungrazed[,2:13]); colSums(grazed[,2:13])
-rowSums(ungrazed[,2:13]); rowSums(grazed[,2:13])
+rowSums(ungrazed[,2:13])
+rowSums(grazed[,2:13])
 
 wUG1<-ungrazed[,2:13]    # 70x12
 wG1<-(grazed[,2:13])     # 120x12
 
-# I trimm the ungrazed dataset to delete trees with no records (10 trees).
+# I trimm the ungrazed dataset to delete trees with no records (9 trees).
 # Trees with 0 records are not included.
 # 
 wUG1<- wUG1 %>% 
            dplyr::filter(rowSums(wUG1^2)!=0) 
 dim(wUG1)    # 61x12
 
-# I trimm the grazed dataset to delete trees with no records (13 trees).
+# I trimm the grazed dataset to delete trees with no records (14 trees).
 # Trees with 0 records are not included.
 # 
 wG1<- wG1 %>% 
@@ -445,7 +441,7 @@ wG1<- wG1 %>%
 dim(wG1)    # 106x12
 
 # I trimm the grazed dataset to delete trees so that I get N=61.
-# Trees with 0 records are included.
+# Trees with 0 records are excluded.
 # Datasets from the G and UG sites have now 61x12
 rG1<- sample_n(wG1, 61, replace= F)   # Random sample from wG1 with N=70 trees (without replacement).
 dim(rG1)
@@ -492,6 +488,40 @@ structdist(prosop,method="anneal", prob.init=0.9, prob.decay=0.85,
 gscor(prosop)
 
 #-----------------------------------------------------------------------
+
+```
+
+
+```{r rand_Hamming, echo=FALSE, message= TRUE, warning= TRUE}
+# Fully randomized assignment of the GRAZED dataset, no. resamps: 999.
+# I trimm the grazed dataset to delete trees so that I get N=61.
+# Trees with 0 records are excluded.
+# Datasets from the G and UG sites have now 61x12
+
+rG1<- sample_n(wG1, 61, replace= F)   # Random sample from wG1 with N=70 trees (without replacement).
+dim(rG1)
+dim(wUG1)
+
+#Perform qap tests of graph correlation. I use the adjacency matrices as input.
+prosop<- base::array(dim=c(2,61,12))
+prosop[1,,]<- as.matrix(rG1)
+prosop[2,,]<- as.matrix(wUG1)
+
+# Doesn't work when I load the graphs (!!!!)
+prosop[1,,]<- grG1
+prosop[2,,]<- gwUG1
+
+#Perform qap tests of graph correlation
+q<-qaptest(prosop, gcor, g1=1, g2=2)
+
+#Examine the results
+summary(q)
+plot(q)
+
+# The Hamming distance.
+q.prosop<-qaptest(prosop,hdist,g1=1,g2=2)
+summary(q.prosop)
+plot(q.prosop)
 
 ```
 
