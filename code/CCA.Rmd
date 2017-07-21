@@ -1,7 +1,7 @@
 ---
 title: "CCA"
 author: "M. Florencia Miguel"
-date: "14 de junio de 2017"
+date: "21 de julio de 2017"
 output: html_document
 ---
 
@@ -29,24 +29,25 @@ str(cans)
 
 ```{r microhabitat variables, echo= TRUE, message= TRUE, warning= TRUE}
 
-#1 to 120 grazed sites, 121 to 190 ungrazed sites
-#to grazed sites eliminate ctenomys fru <- can [1:120, 59:70] fru <- fru[,-10]
-#to ungrazed sites do not consider data of Bos taurus and Equus caballus 
-#vistis 31:42; fruits consumed 43:54; total effect 59:70
+#1 to 120 grazed land uses, 121 to 190 ungrazed land uses
+#to grazed lands eliminate ctenomys fru <- can [1:120, 59:70] fru <- fru[,-10]
+#to ungrazed lands do not consider data of Bos taurus and Equus caballus 
+#visits 31:42; fruits removed 43:54; total effect 59:70
 
-#Grazed sites
+#Grazed lands
 
 #fruG <- can [1:120, 31:42]
 #fruG <- fruG [, -10]
 #plantG <- can [1:120, 4:21]
 
-#Ungrazed sites
+#Ungrazed lands
 
 #fruUG <- can [121:190, 31:40]
 #plantUG <- can [121:190, 4:21]
 
 #To run CCA only considering visited trees 
-#Grazed sites
+
+# Grazed lands
 
 fruG <- cans [1:108, 31:42]
 fruG <- fruG [, -10] #I do not include data of Ctenomys mendocinus in grazed sites, because it did not interact with trees
@@ -57,7 +58,7 @@ plantG <- plantG [, -19]
 plantG <- plantG [, -20]
 
 
-# Ungrazed sites
+# Ungrazed lands
 
 fruUG <- cans [109:172, 31:40] #I do not include in analysis data of Bos taurus and Equus caballus for ungrazed land uses
 #plantUG <- cans [109:172, 4:21]
@@ -67,17 +68,19 @@ plantUG <- plantUG [, -19]
 plantUG <- plantUG [, -20]
 
 # Correlation matrices- habitat variables.
-cor(plantG)
-cor(plantUG)
+#cor(plantG)
+#cor(plantUG)
 
+#str(cans)
 ```
 
 
-## Evaluate colinearity
+### Evaluate collinearity
 
-I am setting a strict threshold of `thresh= 5`; if I relax the value to `thresh= 10` then variable `Veg_pot` would be added to the final model. Finally we use `thresh= 10`.
+We are setting a strict threshold of `thresh= 2`
 
-```{r colinearity}
+```{r collinearity}
+
 # Evaluate Collinearity
 
 require(VIF)
@@ -89,11 +92,41 @@ vif_func(in_frame= plantUG, thresh=2, trace=T)
 ```
 
 
+```{r removing variables from plant traits}
+
+# Grazed sites
+
+#str(plantG)
+
+plantG <- plantG [, -6]
+plantG <- plantG [, -9]
+plantG <- plantG [, -9]
+plantG <- plantG [, -9]
+plantG <- plantG [, -13]
+plantG <- plantG [, -16]
+
+
+# Ungrazed sites
+
+#str(plantUG)
+
+plantUG <- plantUG [, -6]
+plantUG <- plantUG [, -9]
+plantUG <- plantUG [, -9]
+plantUG <- plantUG [, -8]
+plantUG <- plantUG [, -10]
+plantUG <- plantUG [, -12]
+plantUG <- plantUG [, -16]
+plantUG <- plantUG [, -12]
+
+```
+
+
+#### We’ll look at the correlations within and between the two sets of variables using the matcor function from the CCA package.
+
+##### http://www.statisticssolutions.com/table-of-critical-values-pearson-correlation/
 
 ```{r correlations, echo= TRUE, message= TRUE, warning= TRUE}
-
-#we’ll look at the correlations within and between the two sets of variables using the matcor function from the CCA package.
-#http://www.statisticssolutions.com/table-of-critical-values-pearson-correlation/
 
 matcor(fruG, plantG)
 
@@ -101,26 +134,31 @@ matcor(fruUG, plantUG)
 
 ```
 
+
+#### The function cc performs Canonical Correlation Analysis to highlight correlations between the two original data sets
+
+#### The canonical squared correlation coefficients represent the proportion of the total variance explained by each pair of canonical variables. 
+
 ```{r corr coefficients, echo= TRUE, message= TRUE, warning= TRUE}
 
-#The function cc performs Canonical Correlation Analysis to highlight correlations between the two data sets
-# The canonical squared correlation coefficients represent the proportion of the total variance explained by each pair of canonical variables. 
-##Grazed sites
+# Grazed lands
 ccG<-cc(fruG, plantG)
 ccG
 
-##Ungrazed sites
+# Ungrazed lands
 ccUG<-cc(fruUG, plantUG)
 ccUG
 
-mod <- cca(fruUG,plantUG)
-goodness(mod, addprevious = TRUE, summ = TRUE)
+#mod <- cca(fruUG,plantUG)
+#goodness(mod, addprevious = TRUE, summ = TRUE)
 # vif.cca 
-vif.cca(mod)
+#vif.cca(mod)
 
 ```
 
+
 ```{r cca cancor, echo= TRUE, message= FALSE, warning= TRUE}
+
 library(candisc)
 cc <- cancor(fruG, plantG)
 cc
@@ -136,11 +174,14 @@ ccR
 
 ```
 
+
+#### Tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model. So, 1- lambda represents the total variance of original variables explained by the canonical function.  Is  a Test of Significance of the canonical correlation coefficient.
+
+#### I adapted the code obtained from https://stats.idre.ucla.edu/r/dae/canonical-correlation-analysis/ (UCLA Statistical Consulting Group, UCLA= University of California in Los Ángeles)
+
 ```{r WilksL test Grazed sites, echo= TRUE, message= TRUE, warning= TRUE}
 
-#Grazed sites
-# tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model. Is  a Test of Significance of the canonical correlation coefficient.
-#I adapted the code obtained from https://stats.idre.ucla.edu/r/dae/canonical-correlation-analysis/ (UCLA Statistical Consulting Group, UCLA= University of California in Los Ángeles)
+# Grazed lands
 
 ev <- (1 - ccG$cor^2)
 
@@ -173,11 +214,9 @@ pv <- pf(f, d1, d2, lower.tail = F, log.p=F)
 ```
 
 
-
 ```{r WilksL test Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE}
 
-#Ungrazed sites
-# tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model. Is  a Test of Significance of the canonical correlation coefficient.
+#Ungrazed lands
 
 ev <- (1 - ccUG$cor^2)
 
@@ -208,12 +247,13 @@ pv <- pf(f, d1, d2, lower.tail = FALSE)
 
 
 ```
-The lambda value represents the total variance not explained by the full canonical model. So, 1- lambda represents the total variance of original variables explained by the canonical function.   
+
+
+#### Standardized fru canonical coefficients diagonal matrix of fru sd's.
+
+#### Standardized coefficients represents the weight of the measured variables in producing canonical variables scores.
 
 ```{r standardized Grazed sites, echo= TRUE, message= TRUE, warning= TRUE}
-
-# standardized fru canonical coefficients diagonal matrix of fru sd's.
-# Standardized coefficients represents the weight of the measured variables in producing canonical variables scores. 
 
 s1 <- diag(sqrt(diag(cov(fruG))))
 s1 %*% ccG$xcoef
@@ -245,7 +285,6 @@ s2 %*% ccUG$ycoef
 plt.cc (ccG, d1 = 1, d2= 2, int = 1, type = "v", ind.names = NULL,
 var.label = TRUE, Xnames = NULL, Ynames = NULL)
 
-
 ```
 
 ```{r biplot Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 11}
@@ -256,7 +295,7 @@ var.label = TRUE, Xnames = NULL, Ynames = NULL)
 ```
 
 
-```{r mesohabitat variables, echo= TRUE, message= TRUE, warning= TRUE}
+```{r mesohabitat variables, echo= F, message= TRUE, eval=F, warning= TRUE}
 
 #1 to 120 grazed sites, 121 to 190 ungrazed sites
 #to grazed sites eliminate ctenomys fru <- can [1:120, 59:70] fru <- fru[,-10]
@@ -280,7 +319,7 @@ plantUGh <- plantUGh [, -2]
 
 ```
 
-```{r mesohabitat correlations, echo= TRUE, message= TRUE, warning= TRUE}
+```{r mesohabitat correlations, echo= F, message= TRUE, warning= TRUE, eval=F}
 
 #we’ll look at the correlations within and between the two sets of variables using the matcor function from the CCA package.
 
@@ -290,7 +329,7 @@ matcor(fruUG, plantUGh)
 ```
 
 
-```{r mesohabitat corr coefficients, echo= TRUE, message= TRUE, warning= TRUE}
+```{r mesohabitat corr coefficients, echo= F, message= TRUE, warning= TRUE, eval=F}
 
 #The function cc performs Canonical Correlation Analysis to highlight correlations between the two data sets
 # The canonical squared correlation coefficients represent the proportion of the total variance explained by each pair of canonical variables. 
@@ -304,7 +343,7 @@ ccUGh
 
 ```
 
-```{r mesohabitat cca cancor, echo= TRUE, message= TRUE, warning= TRUE}
+```{r mesohabitat cca cancor, echo= F, message= TRUE, warning= TRUE, eval=F}
 library(candisc)
 cch <- cancor(fruG,plantGh)
 cch
@@ -319,7 +358,7 @@ ccRh
 
 ```
 
-```{r mesohabitat WilksL test Grazed sites, echo= TRUE, message= TRUE, warning= TRUE}
+```{r mesohabitat WilksL test Grazed sites, echo= F, message= TRUE, warning= TRUE, eval=F}
 
 #Grazed sites
 # tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model. Is  a Test of Significance of the canonical correlation coefficient.
@@ -354,7 +393,7 @@ pv <- pf(f, d1, d2, lower.tail = F, log.p=F)
 
 ```
 
-```{r mesohabitat WilksL test Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE}
+```{r mesohabitat WilksL test Ungrazed sites, echo= F, message= TRUE, warning= TRUE, eval=F}
 
 #Grazed sites
 # tests for canonical variables significancy, the Wilks lambda represents the total variance not explained by the full canonical model. Is  a Test of Significance of the canonical correlation coefficient.
@@ -389,7 +428,7 @@ pv <- pf(f, d1, d2, lower.tail = F, log.p=F)
 
 ```
 
-```{r biplot mesohabitat Grazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 11}
+```{r biplot mesohabitat Grazed sites, echo= F, message= TRUE, warning= TRUE, eval=F, fig.width= 11}
 
 plt.cc (ccGh, d1 = 1, d2= 2, int = 1, type = "v", ind.names = NULL,
 var.label = TRUE, Xnames = NULL, Ynames = NULL)
@@ -397,7 +436,7 @@ var.label = TRUE, Xnames = NULL, Ynames = NULL)
 
 ```
 
-```{r biplot mesohabitat Ungrazed sites, echo= TRUE, message= TRUE, warning= TRUE, fig.width= 11}
+```{r biplot mesohabitat Ungrazed sites, echo= F, message= TRUE, warning= TRUE, eval=F, fig.width= 11}
 
 plt.cc (ccUGh, d1 = 1, d2 = 2, int = 1, type = "v", ind.names = NULL,
 var.label = TRUE, Xnames = NULL, Ynames = NULL)
