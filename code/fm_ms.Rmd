@@ -141,6 +141,8 @@ bipwUG= network(wUG,
  
 
 ```
+
+
 ```{r saving network plots}
 
 ggsave("Grazed network.pdf", plot = last_plot(), device = "pdf", path = NULL,
@@ -210,7 +212,9 @@ Bipartite provides functions to visualise webs and calculate a series of indices
 ### GRAZED
 
 ```{r indices, echo= TRUE, message= TRUE, warning= TRUE}
+
 require(bipartite)
+
 splevelG<-specieslevel(wG)# This gives you a lot of parameters level="higher" or level="lower"
 # for each species and each Prosopis tree
 splevelG
@@ -397,6 +401,80 @@ Msig(mymat, mod_obs)
 Sys.time() - TIME 
 
 ```
+
+
+```{r connectance and NODF significance}
+
+#z = (x – μ) / σ
+#The z score tells you how many standard deviations from the mean your score is. In this example, your score is 1.6 standard deviations above the mean.
+
+require(bipartite)
+
+mymat<- wG                        # [Assign here]
+
+# Connectance for observed matrix.
+# Give here the mean observed connectance values.
+
+# GRAZED LANDS
+
+con_obs <- 0.1071779           # [Assign here]
+#
+    require(bipartite)
+    
+    nulls <- nullmodel(mymat, N=100, method=3)
+    null <- sapply(nulls, networklevel, index="weighted connectance")
+    z <- (con_obs- mean(null))/sd(null)
+    p <- 2*pnorm(-abs(z))
+    cat("\n\n","P value for connectance C= ", con_obs, "\n", "\n\n",
+        "zeta=  ", z,
+        "P=  ",format(p, scientific = T),"\n\n")
+    
+    
+NODF_obs<- 9.163033
+  
+    
+    nulls <- nullmodel(mymat, N=100, method=3)
+    null <- sapply(nulls, networklevel, index="weighted NODF")
+    z <- (NODF_obs- mean(null))/sd(null)
+    p <- 2*pnorm(-abs(z))
+    cat("\n\n","P value for nestedeness N= ", NODF_obs, "\n", "\n\n",
+        "zeta=  ", z,
+        "P=  ",format(p, scientific = T),"\n\n")
+  
+   
+    
+# UNGRAZED LANDS
+    
+mymat<- wUG     
+
+con_obs <-0.1588508    
+
+ require(bipartite)
+    
+    nulls <- nullmodel(mymat, N=100, method=3)
+    null <- sapply(nulls, networklevel, index="weighted connectance")
+    z <- (con_obs- mean(null))/sd(null)
+    p <- 2*pnorm(-abs(z))
+    cat("\n\n","P value for connectance C= ", con_obs, "\n", "\n\n",
+        "zeta=  ", z,
+        "P=  ",format(p, scientific = T),"\n\n")
+    
+  
+NODF_obs<- 23.68882
+  
+    nulls <- nullmodel(mymat, N=100, method=3)
+    null <- sapply(nulls, networklevel, index="weighted NODF")
+    z <- (NODF_obs- mean(null))/sd(null)
+    p <- 2*pnorm(-abs(z))
+    cat("\n\n","P value for nestedeness N= ", NODF_obs, "\n", "\n\n",
+        "zeta=  ", z,
+        "P=  ",format(p, scientific = T),"\n\n")    
+      
+```
+
+
+
+
 
 ### Hamming Distance, library(sna)
 
